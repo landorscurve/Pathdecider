@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Career Reality Check - PathDecider</title>
+  <meta name="description" content="Only 27% of graduates work in a field related to their major. See the gap across 16 fields." />
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%23D85A30'/><text x='16' y='21' text-anchor='middle' font-size='16' fill='white' font-family='serif'>P</text></svg>" />
+  <style>
+    .crc-wrap{font-family:'DM Sans',sans-serif;color:var(--text);}
+    .crc-kicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-hint);margin-bottom:.5rem;}
+    .crc-headline{font-family:'DM Serif Display',serif;font-size:clamp(26px,5vw,44px);font-weight:400;line-height:1.15;color:var(--text);margin-bottom:.75rem;}
+    .crc-headline em{font-style:italic;color:#D85A30;}
+    .crc-subhead{font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:540px;}
+    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem;}
+    .sc{background:var(--gray-50);border-radius:var(--radius);padding:1rem 1.125rem;}
+    .sl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:.4rem;}
+    .sv{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400;line-height:1;margin-bottom:.3rem;}
+    .sv.red{color:#D85A30;}.sv.green{color:#1D9E75;}.sv.neutral{color:var(--text);}
+    .sn{font-size:11px;color:var(--text-hint);line-height:1.4;}
+    .section-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:1rem;}
+    .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem;}
+    .filter-btn{font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 16px;border-radius:100px;border:0.5px solid var(--border-med);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;}
+    .filter-btn.active{background:#D85A30;border-color:#D85A30;color:#fff;}
+    .legend{display:flex;gap:20px;margin-bottom:1.5rem;}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);}
+    .legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+    .field-row{display:grid;grid-template-columns:120px 1fr 1fr 60px;gap:8px;align-items:center;margin-bottom:10px;}
+    .field-name{color:var(--text);font-weight:500;font-size:12px;line-height:1.3;}
+    .bar-wrap{position:relative;height:22px;background:var(--gray-100);border-radius:3px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.25,.46,.45,.94);}
+    .bar-studied{background:#B5D4F4;}.bar-working{background:#1D9E75;}
+    .bar-pct{font-size:11px;color:var(--text-muted);text-align:right;}
+    .bar-pct.highlight{color:#D85A30;font-weight:500;}
+    .gap-callout{background:var(--gray-50);border-left:3px solid #D85A30;border-radius:0 var(--radius) var(--radius) 0;padding:1rem 1.25rem;margin-bottom:2rem;}
+    .gap-callout-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:.35rem;}
+    .gap-callout-body{font-size:12px;color:var(--text-muted);line-height:1.5;}
+    .pivot-cta{border:0.5px solid var(--border-med);border-radius:var(--radius-lg);padding:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+    .pivot-cta-text p:first-child{font-size:14px;font-weight:500;margin-bottom:.25rem;}
+    .pivot-cta-text p:last-child{font-size:12px;color:var(--text-muted);}
+    .pivot-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 18px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+    .divider{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0;}
+    @media(max-width:480px){.stat-row{grid-template-columns:1fr 1fr;}.field-row{grid-template-columns:80px 1fr 1fr 44px;}.field-name{font-size:11px;}}
+  </style>
+</head>
+<body class="tool-page">
+
+<nav>
+  <a href="../index.html" class="nav-logo">PathDecider<span class="dot"></span></a>
+  <ul class="nav-links">
+    <li><a href="career-reality-check.html">Reality Check</a></li>
+    <li><a href="career-stats.html">Career Income and Stats</a></li>
+    <li><a href="student-pivot.html">Pivot Tool</a></li>
+    <li><a href="employment-crisis.html">Graduate Outcomes</a></li>
+    <li><a href="degree-roi.html" class="nav-cta">Degree ROI</a></li>
+  </ul>
+</nav>
+
+<div class="tool-body" style="max-width:860px;padding-top:3rem;">
+  <a href="../index.html" class="back-link" style="font-size:13px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-bottom:2rem;text-decoration:none;">← All tools</a>
+
+  <div class="crc-wrap">
+    <p class="crc-kicker">Career Reality Check</p>
+    <h1 class="crc-headline">Only <em>27%</em> of graduates<br>work in their field of study.</h1>
+    <p class="crc-subhead">What you study and what you end up doing are rarely the same thing. Here's what the data actually shows - and what to do about it.</p>
+
+    <div class="stat-row">
+      <div class="sc"><p class="sl">Work in their major</p><p class="sv green">27%</p><p class="sn">of graduates land in a field related to their degree</p></div>
+      <div class="sc"><p class="sl">The gap</p><p class="sv red">73%</p><p class="sn">pivot into roles unrelated to what they studied</p></div>
+      <div class="sc"><p class="sl">Median salary loss</p><p class="sv neutral">$12K</p><p class="sn">average earnings gap from misaligned career starts</p></div>
+    </div>
+
+    <p class="section-label">Filter by field</p>
+    <div class="filter-row" id="filter-row">
+      <button class="filter-btn active" data-filter="all">All fields</button>
+      <button class="filter-btn" data-filter="stem">STEM</button>
+      <button class="filter-btn" data-filter="humanities">Humanities</button>
+      <button class="filter-btn" data-filter="business">Business</button>
+      <button class="filter-btn" data-filter="arts">Arts</button>
+    </div>
+
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#B5D4F4;"></span>% who studied this</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;"></span>% working in this field</span>
+    </div>
+
+    <div id="chart-area"></div>
+
+    <div class="gap-callout">
+      <p class="gap-callout-title" id="gap-title">The gap is real - and it's not your fault.</p>
+      <p class="gap-callout-body" id="gap-body">Across every field, more people study a subject than end up working in it. The degree still matters - but only the degree is no longer enough. Skills, certifications, and adaptability determine who lands well.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="pivot-cta">
+      <div class="pivot-cta-text">
+        <p>Don't just change your plan - add to it</p>
+        <p>Find out exactly which skills to layer onto your degree right now</p>
+      </div>
+      <a href="student-pivot.html" class="pivot-btn">Try Student Pivot Tool →</a>
+    </div>
+  </div>
+</div>
+
+<footer style="margin-top:4rem;">
+  <span class="footer-logo">PathDecider<span style="color:var(--coral);">.</span></span>
+  <span class="footer-note">Data based on BLS/O*NET · August 2025</span>
+  <ul class="footer-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="degree-roi.html">ROI Calculator</a></li>
+  </ul>
+</footer>
+
+<script>
+const ALL_DATA=[{name:'Computer Science',cat:'stem',studied:100,working:61},{name:'Nursing',cat:'stem',studied:100,working:72},{name:'Engineering',cat:'stem',studied:100,working:54},{name:'Biology',cat:'stem',studied:100,working:21},{name:'Psychology',cat:'humanities',studied:100,working:24},{name:'English',cat:'humanities',studied:100,working:15},{name:'History',cat:'humanities',studied:100,working:9},{name:'Philosophy',cat:'humanities',studied:100,working:11},{name:'Business Admin',cat:'business',studied:100,working:41},{name:'Finance',cat:'business',studied:100,working:47},{name:'Marketing',cat:'business',studied:100,working:38},{name:'Economics',cat:'business',studied:100,working:29},{name:'Fine Arts',cat:'arts',studied:100,working:13},{name:'Music',cat:'arts',studied:100,working:10},{name:'Film & Media',cat:'arts',studied:100,working:17},{name:'Graphic Design',cat:'arts',studied:100,working:28}];
+const GAP_TEXT={all:{title:"The gap is real - and it's not your fault.",body:"Across every field, more people study a subject than end up working in it. The degree still matters - but only the degree is no longer enough. Skills, certifications, and adaptability determine who lands well."},stem:{title:"Even STEM has a gap.",body:"STEM graduates fare better than average - but only in clinical and high-demand technical roles do most work in their field. Biology, chemistry, and math graduates pivot at alarming rates."},humanities:{title:"The humanities gap is the widest.",body:"Fewer than 1 in 6 humanities graduates works in their direct field. Build bridges: communication, data literacy, digital skills layered onto the critical thinking you're already developing."},business:{title:"Business: closer, but still a gap.",body:"Business graduates perform better than average, but nearly 6 in 10 still pivot. Finance and accounting graduates land most reliably; marketing and management face more variability."},arts:{title:"Arts graduates need to build parallel tracks.",body:"Arts fields have the lowest direct-field employment - but storytelling, visual communication, and creative problem-solving are increasingly valuable when paired with technical tools."}};
+let currentFilter='all';
+function getFiltered(f){return f==='all'?ALL_DATA:ALL_DATA.filter(d=>d.cat===f);}
+function renderChart(filter){
+  const data=getFiltered(filter);
+  const area=document.getElementById('chart-area');
+  area.innerHTML='';
+  data.forEach(d=>{
+    const gap=d.studied-d.working;
+    const row=document.createElement('div');
+    row.className='field-row';
+    row.innerHTML=`<span class="field-name">${d.name}</span><div class="bar-wrap"><div class="bar-fill bar-studied" style="width:0%" data-target="${d.studied}%"></div></div><div class="bar-wrap"><div class="bar-fill bar-working" style="width:0%" data-target="${d.working}%"></div></div><span class="bar-pct ${gap>50?'highlight':''}">${d.working}%</span>`;
+    area.appendChild(row);
+    setTimeout(()=>{row.querySelectorAll('.bar-fill').forEach(b=>{b.style.width=b.dataset.target;});},50);
+  });
+  const g=GAP_TEXT[filter]||GAP_TEXT.all;
+  document.getElementById('gap-title').textContent=g.title;
+  document.getElementById('gap-body').innerHTML=g.body;
+}
+document.getElementById('filter-row').addEventListener('click',e=>{
+  if(!e.target.classList.contains('filter-btn'))return;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentFilter=e.target.dataset.filter;
+  renderChart(currentFilter);
+});
+renderChart('all');
+</script>
+</body>
+</html>

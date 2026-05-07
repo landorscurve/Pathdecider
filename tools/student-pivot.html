@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Pivot Tool - PathDecider</title>
+  <meta name="description" content="Enter your major and year in school. Get specific skills, certifications, and a timeline to stay relevant in an AI economy." />
+  <link rel="stylesheet" href="../css/main.css" />
+  <style>
+    .fl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:5px;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+    .form-grid input,.form-grid select,.form-single input,.form-single select{font-family:'DM Sans',sans-serif;font-size:14px;width:100%;height:40px;padding:0 12px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:#fff;color:var(--text);outline:none;}
+    .form-grid input:focus,.form-grid select:focus{border-color:var(--coral);}
+    .submit-btn{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;height:46px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;margin-top:6px;}
+    .results{display:none;margin-top:2rem;}.results.show{display:block;}
+    .result-name{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;margin-bottom:.35rem;}
+    .result-context{font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1.5rem;}
+    .section-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.875rem;}
+    .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:1.75rem;}
+    .skill-card{border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.125rem;}
+    .skill-card.priority{border-color:#D85A30;}
+    .skill-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:.5rem;}
+    .skill-name{font-size:14px;font-weight:500;color:var(--text);line-height:1.3;}
+    .skill-badge{font-size:10px;padding:3px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0;}
+    .badge-now{background:var(--coral-light);color:var(--coral-dark);}
+    .badge-soon{background:var(--blue-light);color:var(--blue);}
+    .badge-later{background:var(--gray-100);color:var(--gray-600);}
+    .skill-why{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:.625rem;}
+    .skill-meta{display:flex;gap:12px;flex-wrap:wrap;}
+    .skill-meta-item{font-size:11px;color:var(--text-hint);}
+    .skill-meta-item span{color:var(--text-muted);font-weight:500;}
+    .certs-list{margin-bottom:1.75rem;}
+    .cert-row{display:flex;align-items:flex-start;gap:12px;padding:.875rem 0;border-bottom:0.5px solid var(--border);}
+    .cert-row:last-child{border-bottom:none;}
+    .cert-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+    .cert-name{font-size:13px;font-weight:500;margin-bottom:.2rem;color:var(--text);}
+    .cert-detail{font-size:12px;color:var(--text-muted);line-height:1.5;}
+    .timeline{margin-bottom:1.75rem;}
+    .timeline-row{display:grid;grid-template-columns:100px 1fr;gap:12px;margin-bottom:12px;align-items:start;}
+    .timeline-period{font-size:11px;font-weight:500;color:var(--text-muted);padding-top:2px;}
+    .timeline-items{display:flex;flex-direction:column;gap:6px;}
+    .timeline-item{font-size:12px;padding:6px 10px;background:var(--gray-50);border-radius:var(--radius);color:var(--text);line-height:1.4;}
+    .risk-block{border-left:3px solid var(--border);padding:.875rem 1rem;margin-bottom:1.75rem;border-radius:0 var(--radius) var(--radius) 0;}
+    .risk-block.low{border-left-color:#1D9E75;}.risk-block.medium{border-left-color:#BA7517;}.risk-block.high{border-left-color:#D85A30;}
+    .risk-title{font-size:13px;font-weight:500;margin-bottom:.3rem;}
+    .risk-body{font-size:12px;color:var(--text-muted);line-height:1.5;}
+    .divider{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0;}
+    .cta-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .cta-text p:first-child{font-size:14px;font-weight:500;margin-bottom:.2rem;}
+    .cta-text p:last-child{font-size:12px;color:var(--text-muted);}
+    .cta-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 16px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block;}
+    .quick-majors{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem;}
+    .qm-pill{font-size:12px;padding:5px 12px;border:0.5px solid var(--border-med);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+    .qm-pill:hover{background:var(--gray-100);}
+  </style>
+</head>
+<body class="tool-page">
+<nav>
+  <a href="../index.html" class="nav-logo">PathDecider<span class="dot"></span></a>
+  <ul class="nav-links">
+    <li><a href="career-reality-check.html">Reality Check</a></li>
+    <li><a href="career-stats.html">Career Income and Stats</a></li>
+    <li><a href="student-pivot.html">Pivot Tool</a></li>
+    <li><a href="employment-crisis.html">Graduate Outcomes</a></li>
+    <li><a href="degree-roi.html" class="nav-cta">Degree ROI</a></li>
+  </ul>
+</nav>
+<div class="tool-body" style="max-width:860px;padding-top:3rem;">
+  <a href="../index.html" style="font-size:13px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-bottom:2rem;text-decoration:none;">← All tools</a>
+  <p style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-hint);margin-bottom:.5rem;">Student Pivot Tool</p>
+  <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(26px,5vw,44px);font-weight:400;line-height:1.15;margin-bottom:.75rem;">Your degree is the foundation.<br><span style="font-style:italic;color:#D85A30;">Let's build on top of it.</span></h1>
+  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:520px;">You don't need to switch majors. You need to know what to add. Enter where you are right now and get a specific action plan.</p>
+
+  <p class="section-lbl" style="margin-bottom:.625rem;">Quick select your major</p>
+  <div class="quick-majors">
+    <button class="qm-pill" onclick="quickFill('Psychology')">Psychology</button>
+    <button class="qm-pill" onclick="quickFill('Business Administration')">Business administration</button>
+    <button class="qm-pill" onclick="quickFill('English')">English</button>
+    <button class="qm-pill" onclick="quickFill('Biology')">Biology</button>
+    <button class="qm-pill" onclick="quickFill('Communications')">Communications</button>
+    <button class="qm-pill" onclick="quickFill('Computer Science')">Computer science</button>
+    <button class="qm-pill" onclick="quickFill('Marketing')">Marketing</button>
+    <button class="qm-pill" onclick="quickFill('Political Science')">Political science</button>
+    <button class="qm-pill" onclick="quickFill('History')">History</button>
+    <button class="qm-pill" onclick="quickFill('Finance')">Finance</button>
+    <button class="qm-pill" onclick="quickFill('Nursing')">Nursing</button>
+    <button class="qm-pill" onclick="quickFill('Graphic Design')">Graphic design</button>
+  </div>
+
+  <div class="form-grid">
+    <div><p class="fl">Your major</p><input type="text" id="major" placeholder="e.g. Psychology, English..." /></div>
+    <div><p class="fl">Year in school</p><select id="year-select"><option value="">Select year...</option><option value="freshman">Freshman (1st year)</option><option value="sophomore">Sophomore (2nd year)</option><option value="junior">Junior (3rd year)</option><option value="senior">Senior (4th year)</option><option value="grad">Graduate student</option></select></div>
+  </div>
+  <div class="form-grid">
+    <div><p class="fl">Career interest (optional)</p><input type="text" id="career-input" placeholder="e.g. healthcare, tech, media..." /></div>
+    <div><p class="fl">Time available per week</p><select id="time-select"><option value="">Select time...</option><option value="2">1–2 hours/week</option><option value="5">3–5 hours/week</option><option value="10">5–10 hours/week</option><option value="15">10+ hours/week</option></select></div>
+  </div>
+  <button class="submit-btn" onclick="buildPlan()">Build my pivot plan</button>
+  <div class="results" id="results-panel"></div>
+</div>
+<footer style="margin-top:4rem;">
+  <span class="footer-logo">PathDecider<span style="color:var(--coral);">.</span></span>
+  <span class="footer-note">Powered by Claude AI · Data through August 2025</span>
+  <ul class="footer-links"><li><a href="../index.html">Home</a></li><li><a href="degree-roi.html">ROI Calculator</a></li></ul>
+</footer>
+<script src="../js/pivot-data.js"></script>
+<script src="../js/pivot-engine.js"></script>
+</body>
+</html>

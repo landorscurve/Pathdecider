@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graduate Outcomes and Underemployment - PathDecider</title>
+  <meta name="description" content="See the gap between graduation, employment, underemployment, and real-world career outcomes." />
+  <link rel="stylesheet" href="../css/main.css" />
+  <style>
+    .sc{background:var(--gray-50);border-radius:var(--radius);padding:.875rem 1rem;}
+    .sl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:.4rem;}
+    .sv{font-family:'DM Serif Display',serif;font-size:24px;font-weight:400;line-height:1;margin-bottom:.2rem;}
+    .sv.red{color:#D85A30;}.sv.amber{color:#BA7517;}.sv.blue{color:#185FA5;}.sv.green{color:#1D9E75;}
+    .sn{font-size:11px;color:var(--text-hint);line-height:1.4;}
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:2rem;}
+    .tab-btn{font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 16px;border-radius:100px;border:0.5px solid var(--border-med);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;}
+    .tab-btn.active{background:#D85A30;border-color:#D85A30;color:#fff;}
+    .chart-tabs{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap;}
+    .legend-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:1rem;font-size:12px;color:var(--text-muted);}
+    .legend-item{display:flex;align-items:center;gap:5px;}
+    .legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+    .annotation{margin-top:1rem;padding:.75rem 1rem;background:var(--gray-50);border-radius:var(--radius);font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:1.75rem;}
+    .breakdown-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:1.75rem;}
+    .bk-card{border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.125rem;}
+    .bk-num{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:.2rem;}
+    .bk-label{font-size:13px;font-weight:500;margin-bottom:.25rem;color:var(--text);}
+    .bk-note{font-size:12px;color:var(--text-muted);line-height:1.4;}
+    .additive-block{border-left:3px solid #1D9E75;padding:.875rem 1rem;margin-bottom:1.75rem;border-radius:0 var(--radius) var(--radius) 0;}
+    .additive-title{font-size:13px;font-weight:500;color:#085041;margin-bottom:.3rem;}
+    .additive-body{font-size:12px;color:var(--text-muted);line-height:1.5;}
+    .divider{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0;}
+    .cta-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .cta-text p:first-child{font-size:14px;font-weight:500;margin-bottom:.2rem;}
+    .cta-text p:last-child{font-size:12px;color:var(--text-muted);}
+    .cta-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 16px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block;}
+  </style>
+</head>
+<body class="tool-page">
+<nav>
+  <a href="../index.html" class="nav-logo">PathDecider<span class="dot"></span></a>
+  <ul class="nav-links">
+    <li><a href="career-reality-check.html">Reality Check</a></li>
+    <li><a href="career-stats.html">Career Stats</a></li>
+    <li><a href="student-pivot.html">Pivot Tool</a></li>
+    <li><a href="employment-crisis.html">Graduate Outcomes</a></li>
+    <li><a href="degree-roi.html" class="nav-cta">Degree ROI</a></li>
+  </ul>
+</nav>
+<div class="tool-body" style="max-width:860px;padding-top:3rem;">
+  <a href="../index.html" style="font-size:13px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-bottom:2rem;text-decoration:none;">← All tools</a>
+  <p style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-hint);margin-bottom:.5rem;">Graduate Outcomes and Underemployment</p>
+  <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(26px,5vw,44px);font-weight:400;line-height:1.15;margin-bottom:.75rem;">A degree used to be enough.<br><span style="font-style:italic;color:#D85A30;">It no longer is.</span></h1>
+  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:540px;">The number of college graduates working jobs that don't require a degree has reached historic levels. This isn't a recession blip - it's a structural shift.</p>
+
+  <div class="stat-grid">
+    <div class="sc"><p class="sl">Underemployed grads</p><p class="sv red">41.3%</p><p class="sn">of recent grads in jobs not requiring a degree (2024)</p></div>
+    <div class="sc"><p class="sl">Graduate unemployment</p><p class="sv amber">4.6%</p><p class="sn">recent grad unemployment rate - 2x the pre-2020 average</p></div>
+    <div class="sc"><p class="sl">Degree premium</p><p class="sv blue">+65%</p><p class="sn">lifetime earnings advantage - still real, but narrowing</p></div>
+    <div class="sc"><p class="sl">Avg student debt</p><p class="sv red">$37,650</p><p class="sn">carried by bachelor's degree graduates at graduation</p></div>
+  </div>
+
+  <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.875rem;">Explore the data</p>
+  <div class="chart-tabs">
+    <button class="tab-btn active" onclick="switchChart('underemployment',this)">Underemployment rate</button>
+    <button class="tab-btn" onclick="switchChart('unemployment',this)">Graduate unemployment</button>
+    <button class="tab-btn" onclick="switchChart('debt',this)">Student debt load</button>
+    <button class="tab-btn" onclick="switchChart('premium',this)">Degree wage premium</button>
+  </div>
+  <div class="legend-row" id="legend-row">
+    <span class="legend-item"><span class="legend-dot" style="background:#D85A30;"></span>Recent graduates (under 27)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#B5D4F4;border:1px dashed #378ADD;"></span>All college graduates</span>
+  </div>
+  <div style="position:relative;height:280px;">
+    <canvas id="mainChart" role="img" aria-label="Line chart showing graduate employment trends from 2000 to 2024.">Graduate employment trends 2000–2024.</canvas>
+  </div>
+  <div class="annotation" id="chart-annotation"></div>
+
+  <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.875rem;">Who's most affected</p>
+  <div class="breakdown-grid">
+    <div class="bk-card"><p class="bk-num" style="color:#D85A30;">52%</p><p class="bk-label">Humanities & arts graduates</p><p class="bk-note">Highest underemployment of any category. Writing and design roles disrupted earliest by AI tools.</p></div>
+    <div class="bk-card"><p class="bk-num" style="color:#BA7517;">44%</p><p class="bk-label">Social science graduates</p><p class="bk-note">Psychology, sociology, political science - broad skills, unclear career paths without added credentials.</p></div>
+    <div class="bk-card"><p class="bk-num" style="color:#BA7517;">38%</p><p class="bk-label">Business graduates</p><p class="bk-note">Generalist business degrees underperform. Specialized graduates (finance, accounting) fare significantly better.</p></div>
+    <div class="bk-card"><p class="bk-num" style="color:#1D9E75;">19%</p><p class="bk-label">STEM & health graduates</p><p class="bk-note">Lowest underemployment - but even here, graduates without specialization face increasing competition.</p></div>
+  </div>
+
+  <div class="additive-block">
+    <p class="additive-title">This is not a reason to skip college. It's a reason to build on top of it.</p>
+    <p class="additive-body">The degree premium is still real - college graduates earn 65% more over a lifetime than non-graduates on average. The crisis is not that college doesn't work. It's that college alone no longer works. Graduates who add specific skills and certifications in school dramatically outperform those who rely on the degree itself.</p>
+  </div>
+
+  <div class="divider"></div>
+  <div class="cta-row">
+    <div class="cta-text"><p>Don't be a statistic - build on your degree now</p><p>Find out exactly what to add based on your major</p></div>
+    <a href="student-pivot.html" class="cta-btn">Student Pivot Tool →</a>
+  </div>
+</div>
+<footer style="margin-top:4rem;">
+  <span class="footer-logo">PathDecider<span style="color:var(--coral);">.</span></span>
+  <span class="footer-note">Data based on BLS/Federal Reserve Bank of NY · August 2025</span>
+  <ul class="footer-links"><li><a href="../index.html">Home</a></li><li><a href="degree-roi.html">ROI Calculator</a></li></ul>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const YEARS=['2000','2002','2004','2006','2008','2010','2012','2014','2016','2018','2020','2022','2024'];
+const CHARTS={underemployment:{recent:[34.1,35.2,34.8,33.9,36.4,44.3,43.1,43.8,43.5,41.2,41.9,40.8,41.3],all:[28.4,29.1,28.7,27.9,30.2,37.8,37.1,37.6,37.2,35.8,36.4,35.9,36.7],yLabel:'Underemployment rate (%)',yMin:20,yMax:50,annotation:'<strong>What this shows:</strong> The share of recent graduates working in jobs that don\'t require a college degree. It peaked during the 2008–2010 recession, partially recovered, then climbed again through the 2020s - driven by structural changes in the labor market and AI displacement of entry-level white-collar work.',legend:true},unemployment:{recent:[4.1,5.8,4.4,3.9,6.2,9.1,7.9,5.8,5.2,3.9,7.8,4.2,4.6],all:[2.3,3.1,2.8,2.2,3.4,5.1,4.3,3.5,2.8,2.2,4.1,2.6,2.9],yLabel:'Unemployment rate (%)',yMin:0,yMax:12,annotation:'<strong>What this shows:</strong> Unemployment among recent college graduates is running at roughly double the pre-2020 average, even outside of recession periods. Entry-level white-collar jobs - historically the gateway for new graduates - are being reduced or automated at an accelerating rate.',legend:true},debt:{recent:[17200,19400,21800,24700,26800,29900,31200,33300,34700,35600,36900,37200,37650],all:null,yLabel:'Avg debt at graduation ($)',yMin:0,yMax:45000,annotation:'<strong>What this shows:</strong> Average student loan debt at graduation has more than doubled since 2000 - rising nearly 120% in real terms. Graduates entering a labor market with limited entry-level opportunities are increasingly carrying this debt into underemployment.',legend:false},premium:{recent:[84,82,83,84,80,75,74,76,75,74,72,70,65],all:null,yLabel:'Lifetime earnings premium vs. no degree (%)',yMin:40,yMax:100,annotation:'<strong>What this shows:</strong> The wage premium from a college degree remains significant - but it has declined from ~84% in 2000 to ~65% today as more graduates compete for fewer degree-required roles. The degree still pays. It just pays less than it used to - unless paired with additional credentials.',legend:false}};
+let activeChart=null;
+function buildDatasets(key){const d=CHARTS[key];const ds=[{label:'Recent graduates',data:d.recent,borderColor:'#D85A30',borderWidth:2,pointRadius:0,tension:0.35,fill:false}];if(d.all)ds.push({label:'All graduates',data:d.all,borderColor:'#378ADD',borderWidth:1.5,borderDash:[5,4],pointRadius:0,tension:0.35,fill:false});return ds;}
+function switchChart(key,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const d=CHARTS[key];
+  document.getElementById('chart-annotation').innerHTML=d.annotation;
+  document.getElementById('legend-row').style.display=d.legend?'flex':'none';
+  if(activeChart){activeChart.destroy();activeChart=null;}
+  const isDollar=key==='debt';
+  activeChart=new Chart(document.getElementById('mainChart'),{type:'line',data:{labels:YEARS,datasets:buildDatasets(key)},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.parsed.y;return isDollar?' $'+v.toLocaleString():' '+v.toFixed(1)+'%';}}}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:10},color:'#888780',autoSkip:false,maxRotation:0}},y:{min:d.yMin,max:d.yMax,grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:10},color:'#888780',callback:v=>isDollar?'$'+(v/1000).toFixed(0)+'k':v+'%'}}}}});
+}
+switchChart('underemployment',document.querySelector('.tab-btn.active'));
+</script>
+</body>
+</html>

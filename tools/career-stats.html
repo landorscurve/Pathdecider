@@ -386,6 +386,15 @@ function render(r) {
     <p class="section-title">Related careers to explore</p>
     <div class="related-row">${r.relatedCareers.map(c => `<button class="related-pill" onclick="quickSearch('${c}')">${c}</button>`).join('')}</div>` : ''}
 
+
+    <div class="divider"></div>
+    <div style="background:var(--teal-light);border-radius:var(--radius-lg);padding:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+      <div>
+        <p style="font-size:14px;font-weight:500;color:var(--teal-dark);margin-bottom:.25rem;">Turn this into your personal career report</p>
+        <p style="font-size:12px;color:var(--text-muted);">Get a PDF with salary data, education path, certifications, and a 30-60-90 day action plan.</p>
+      </div>
+      <a id="report-link" href="../tools/report.html" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 18px;background:#1D9E75;color:#fff;border-radius:var(--radius);text-decoration:none;white-space:nowrap;flex-shrink:0;">Generate my report →</a>
+    </div>
     <div class="divider"></div>
     <div class="cta-row">
       <div class="cta-text"><p>Want a full pivot plan?</p><p>See what skills to add based on your major</p></div>

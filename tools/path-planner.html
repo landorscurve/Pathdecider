@@ -435,6 +435,14 @@ function render(r) {
       </div>
     </div>` : '';
 
+  const ppReportBlock = `
+      <div style="background:var(--teal-light);border-radius:var(--radius-lg);padding:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div>
+          <p style="font-size:14px;font-weight:500;color:var(--teal-dark);margin-bottom:.25rem;">Save this path plan as a PDF</p>
+          <p style="font-size:12px;color:var(--text-muted);">Get your full education plan, tuition comparison, and action steps in one document.</p>
+        </div>
+        <a id="pp-report-link" href="report.html" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 18px;background:#1D9E75;color:#fff;border-radius:10px;text-decoration:none;white-space:nowrap;flex-shrink:0;">Generate my report →</a>
+      </div>`;
   panel.innerHTML = `
     <div class="results-header">
       <h2 class="results-title">${r.careerTitle || r.field} in <em>${r.targetState}</em></h2>
@@ -523,6 +531,8 @@ function render(r) {
     </div>
   `;
 
+  // report link
+  const ppLink=document.getElementById('pp-report-link');if(ppLink){const f=document.getElementById('field-input').value.trim();const s=document.getElementById('target-state').value;if(f)ppLink.href='report.html?career='+encodeURIComponent(f)+'&state='+encodeURIComponent(s);}
   panel.classList.add('show');
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }

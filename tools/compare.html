@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>College vs. Trade Comparison | PathDecider</title>
+  <meta name="description" content="Compare the college degree path vs. the trade path for any career, by state. See cost, salary, and which wins." />
+  <link rel="stylesheet" href="../css/main.css" />
+  <style>
+    .search-wrap{background:#fff;border:0.5px solid var(--border-med);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.75rem;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;}
+    .fl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:5px;display:block;}
+    .fi{font-family:'DM Sans',sans-serif;font-size:14px;width:100%;height:42px;padding:0 12px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:var(--gray-50);color:var(--text);outline:none;}
+    .fi:focus{border-color:var(--coral);background:#fff;}
+    .go-btn{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;height:46px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;margin-top:8px;transition:opacity .15s;}
+    .go-btn:hover{opacity:.88;}.go-btn:disabled{background:#ccc;cursor:not-allowed;}
+    .quick-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2rem;}
+    .qp{font-size:12px;padding:5px 14px;border:0.5px solid var(--border-med);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+    .qp:hover{background:var(--gray-100);}
+    .loading-box{display:none;text-align:center;padding:2.5rem 1rem;}
+    .loading-box.show{display:block;}
+    .spinner{width:40px;height:40px;border:2px solid var(--gray-100);border-top-color:var(--coral);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .error-box{display:none;padding:1rem;background:#FAECE7;border-radius:var(--radius);border-left:3px solid var(--coral);font-size:13px;color:var(--coral-dark);margin-bottom:1rem;}
+    .error-box.show{display:block;}
+    .results{display:none;}.results.show{display:block;}
+
+    /* VERDICT BANNER */
+    .verdict-banner{border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.75rem;text-align:center;}
+    .verdict-banner.college{background:var(--blue-light);}
+    .verdict-banner.trade{background:var(--teal-light);}
+    .verdict-banner.depends{background:var(--amber-light);}
+    .verdict-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:500;margin-bottom:.5rem;}
+    .verdict-label.college{color:var(--blue);}
+    .verdict-label.trade{color:var(--teal-dark);}
+    .verdict-label.depends{color:var(--amber);}
+    .verdict-title{font-family:'DM Serif Display',serif;font-size:24px;font-weight:400;margin-bottom:.75rem;color:var(--text);}
+    .verdict-note{font-size:13px;color:var(--text-muted);line-height:1.6;max-width:580px;margin:0 auto;}
+    .verdict-stats{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-top:1.25rem;}
+    .vs-stat{text-align:center;}
+    .vs-stat-val{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);}
+    .vs-stat-lbl{font-size:11px;color:var(--text-muted);}
+
+    /* COMPARISON GRID */
+    .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.75rem;}
+    .path-col{border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+    .path-col.winner{border-width:1.5px;}
+    .path-col.winner.college{border-color:var(--blue);}
+    .path-col.winner.trade{border-color:var(--teal);}
+    .path-header{padding:1rem 1.125rem;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .path-header.college{background:var(--blue-light);}
+    .path-header.trade{background:var(--teal-light);}
+    .path-type{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;}
+    .path-type.college{color:var(--blue);}
+    .path-type.trade{color:var(--teal-dark);}
+    .path-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.3;}
+    .winner-badge{font-size:10px;font-weight:500;padding:3px 10px;border-radius:100px;white-space:nowrap;}
+    .winner-badge.college{background:var(--blue);color:#fff;}
+    .winner-badge.trade{background:var(--teal);color:#fff;}
+    .path-body{padding:1rem 1.125rem;}
+    .path-stat-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:0.5px solid var(--border);font-size:12px;}
+    .path-stat-row:last-of-type{border-bottom:none;}
+    .path-stat-lbl{color:var(--text-muted);}
+    .path-stat-val{font-weight:500;color:var(--text);}
+    .pros-cons{margin-top:.875rem;}
+    .pc-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;}
+    .pc-label.pro{color:#1D9E75;}
+    .pc-label.con{color:#D85A30;}
+    .pc-item{font-size:12px;color:var(--text-muted);padding:.2rem 0;display:flex;gap:6px;align-items:flex-start;line-height:1.4;}
+    .pc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+    .pc-dot.pro{background:#1D9E75;}
+    .pc-dot.con{background:#D85A30;}
+    .schools-wrap{margin-top:.875rem;}
+    .school-tag{font-size:11px;padding:3px 10px;background:var(--gray-50);color:var(--text-muted);border-radius:100px;display:inline-block;margin:2px;}
+    .ai-note-row{margin-top:.875rem;padding:.625rem .875rem;border-radius:var(--radius);font-size:12px;color:var(--text-muted);line-height:1.4;}
+    .ai-note-row.low{background:var(--teal-light);}
+    .ai-note-row.medium{background:var(--amber-light);}
+    .ai-note-row.high{background:var(--coral-light);}
+
+    /* HYBRID */
+    .hybrid-block{border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.75rem;background:var(--gray-50);}
+    .hybrid-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.5rem;}
+    .hybrid-body{font-size:13px;color:var(--text-muted);line-height:1.6;}
+
+    /* WHO SHOULD */
+    .who-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.75rem;}
+    .who-card{border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.125rem;}
+    .who-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;}
+    .who-label.college{color:var(--blue);}
+    .who-label.trade{color:var(--teal-dark);}
+    .who-body{font-size:12px;color:var(--text-muted);line-height:1.5;}
+
+    .divider{border:none;border-top:0.5px solid var(--border);margin:1.75rem 0;}
+    .related-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem;}
+    .related-pill{font-size:12px;padding:6px 14px;border:0.5px solid var(--border-med);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;}
+    .related-pill:hover{background:var(--gray-100);}
+    .cta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+    .cta-card{border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem;text-decoration:none;transition:border-color .15s,transform .15s;}
+    .cta-card:hover{border-color:var(--border-med);transform:translateY(-1px);}
+    .cta-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:.3rem;}
+    .cta-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:.2rem;}
+    .cta-arrow{font-size:12px;color:var(--coral);margin-top:.4rem;display:block;}
+
+    @media(max-width:600px){
+      .compare-grid{grid-template-columns:1fr;}
+      .who-grid{grid-template-columns:1fr;}
+      .form-row{grid-template-columns:1fr;}
+      .verdict-stats{gap:1rem;}
+    }
+  </style>
+</head>
+<body class="tool-page">
+<nav>
+  <a href="../index.html" class="nav-logo">PathDecider<span class="dot"></span></a>
+  <ul class="nav-links">
+    <li><a href="career-reality-check.html">Reality Check</a></li>
+    <li><a href="career-stats.html">Career Income and Stats</a></li>
+    <li><a href="student-pivot.html">Pivot Tool</a></li>
+    <li><a href="employment-crisis.html">Graduate Outcomes</a></li>
+    <li><a href="degree-roi.html" class="nav-cta">Degree ROI</a></li>
+  </ul>
+</nav>
+
+<div class="tool-body" style="max-width:900px;padding-top:3rem;">
+  <a href="../index.html" style="font-size:13px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-bottom:2rem;text-decoration:none;">← All tools</a>
+  <p style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-hint);margin-bottom:.5rem;">College vs. Trade Comparison</p>
+  <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(26px,5vw,44px);font-weight:400;line-height:1.15;margin-bottom:.75rem;">Degree or trade school?<br><em style="font-style:italic;color:#D85A30;">See which one actually wins.</em></h1>
+  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:560px;">Pick a career field and a state. We compare the college degree path and the trade school path side by side on cost, salary, time, and which one makes more financial sense.</p>
+
+  <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.625rem;">Quick comparisons</p>
+  <div class="quick-pills">
+    <button class="qp" onclick="quickCompare('Nursing','Texas')">Nursing in Texas</button>
+    <button class="qp" onclick="quickCompare('Electrical work','Florida')">Electrical work in Florida</button>
+    <button class="qp" onclick="quickCompare('Healthcare','California')">Healthcare in California</button>
+    <button class="qp" onclick="quickCompare('Information Technology','Washington')">IT in Washington</button>
+    <button class="qp" onclick="quickCompare('Culinary arts','New York')">Culinary arts in New York</button>
+    <button class="qp" onclick="quickCompare('Construction management','Texas')">Construction in Texas</button>
+    <button class="qp" onclick="quickCompare('Automotive','Ohio')">Automotive in Ohio</button>
+    <button class="qp" onclick="quickCompare('Criminal justice','Georgia')">Criminal justice in Georgia</button>
+  </div>
+
+  <div class="search-wrap">
+    <div class="form-row">
+      <div>
+        <label class="fl" for="field-in">Career field to compare</label>
+        <input type="text" class="fi" id="field-in" placeholder="e.g. nursing, electrical work, IT, welding..." />
+      </div>
+      <div>
+        <label class="fl" for="state-in">State</label>
+        <select class="fi" id="state-in">
+          <option value="">Select a state...</option>
+          <option value="Alabama">Alabama</option><option value="Alaska">Alaska</option><option value="Arizona">Arizona</option><option value="Arkansas">Arkansas</option><option value="California">California</option><option value="Colorado">Colorado</option><option value="Connecticut">Connecticut</option><option value="Delaware">Delaware</option><option value="Florida">Florida</option><option value="Georgia">Georgia</option><option value="Hawaii">Hawaii</option><option value="Idaho">Idaho</option><option value="Illinois">Illinois</option><option value="Indiana">Indiana</option><option value="Iowa">Iowa</option><option value="Kansas">Kansas</option><option value="Kentucky">Kentucky</option><option value="Louisiana">Louisiana</option><option value="Maine">Maine</option><option value="Maryland">Maryland</option><option value="Massachusetts">Massachusetts</option><option value="Michigan">Michigan</option><option value="Minnesota">Minnesota</option><option value="Mississippi">Mississippi</option><option value="Missouri">Missouri</option><option value="Montana">Montana</option><option value="Nebraska">Nebraska</option><option value="Nevada">Nevada</option><option value="New Hampshire">New Hampshire</option><option value="New Jersey">New Jersey</option><option value="New Mexico">New Mexico</option><option value="New York">New York</option><option value="North Carolina">North Carolina</option><option value="North Dakota">North Dakota</option><option value="Ohio">Ohio</option><option value="Oklahoma">Oklahoma</option><option value="Oregon">Oregon</option><option value="Pennsylvania">Pennsylvania</option><option value="Rhode Island">Rhode Island</option><option value="South Carolina">South Carolina</option><option value="South Dakota">South Dakota</option><option value="Tennessee">Tennessee</option><option value="Texas">Texas</option><option value="Utah">Utah</option><option value="Vermont">Vermont</option><option value="Virginia">Virginia</option><option value="Washington">Washington</option><option value="West Virginia">West Virginia</option><option value="Wisconsin">Wisconsin</option><option value="Wyoming">Wyoming</option>
+        </select>
+      </div>
+    </div>
+    <button class="go-btn" id="compare-btn" onclick="runComparison()">Compare college vs. trade</button>
+  </div>
+
+  <div class="error-box" id="error-box"></div>
+  <div class="loading-box" id="loading-box">
+    <div class="spinner"></div>
+    <p style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:.35rem;" id="loading-title">Running the comparison...</p>
+    <p style="font-size:12px;color:var(--text-muted);" id="loading-sub">Pulling cost and salary data for both paths...</p>
+  </div>
+  <div class="results" id="results-panel"></div>
+</div>
+
+<footer style="margin-top:4rem;">
+  <span class="footer-logo">PathDecider<span style="color:var(--coral);">.</span></span>
+  <span class="footer-note">Powered by Claude AI. Data from BLS, NCES, and College Board through August 2025.</span>
+  <ul class="footer-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="path-planner.html">Path Planner</a></li>
+    <li><a href="degree-roi.html">ROI Calculator</a></li>
+  </ul>
+</footer>
+
+<script>
+const LOADING_MSGS = [
+  ['Pulling college path data...', 'Degree costs and salary outcomes'],
+  ['Pulling trade path data...', 'Vocational costs and licensing requirements'],
+  ['Comparing salaries...', 'State-specific BLS wage data'],
+  ['Calculating breakeven...', 'Cost vs. earnings over time'],
+  ['Writing the verdict...', 'Which path wins for your field and state'],
+];
+
+let loadingInterval;
+
+function startLoading() {
+  document.getElementById('loading-box').classList.add('show');
+  document.getElementById('error-box').classList.remove('show');
+  document.getElementById('results-panel').classList.remove('show');
+  document.getElementById('compare-btn').disabled = true;
+  let i = 0;
+  loadingInterval = setInterval(() => {
+    if (i < LOADING_MSGS.length) {
+      document.getElementById('loading-title').textContent = LOADING_MSGS[i][0];
+      document.getElementById('loading-sub').textContent = LOADING_MSGS[i][1];
+      i++;
+    }
+  }, 1600);
+}
+
+function stopLoading() {
+  clearInterval(loadingInterval);
+  document.getElementById('loading-box').classList.remove('show');
+  document.getElementById('compare-btn').disabled = false;
+}
+
+function showError(msg) {
+  const box = document.getElementById('error-box');
+  box.textContent = msg;
+  box.classList.add('show');
+}
+
+function render(r) {
+  const panel = document.getElementById('results-panel');
+  const v = r.verdict || {};
+  const winner = (v.winner || 'depends').toLowerCase();
+  const cp = r.collegePath || {};
+  const tp = r.tradePath || {};
+
+  const verdictTitle = winner === 'college'
+    ? 'The college path wins for ' + r.field + ' in ' + r.state
+    : winner === 'trade'
+    ? 'The trade path wins for ' + r.field + ' in ' + r.state
+    : 'It depends on your situation';
+
+  panel.innerHTML = `
+    <div class="verdict-banner ${winner}">
+      <p class="verdict-label ${winner}">${winner === 'depends' ? 'No clear winner' : winner === 'college' ? 'College wins' : 'Trade wins'}</p>
+      <h2 class="verdict-title">${verdictTitle}</h2>
+      <p class="verdict-note">${v.winnerNote || ''}</p>
+      <div class="verdict-stats">
+        <div class="vs-stat"><p class="vs-stat-val">${v.salaryGapAt5Years || 'N/A'}</p><p class="vs-stat-lbl">Salary gap at 5 years</p></div>
+        <div class="vs-stat"><p class="vs-stat-val">${v.costGap || 'N/A'}</p><p class="vs-stat-lbl">Total cost difference</p></div>
+        <div class="vs-stat"><p class="vs-stat-val">${v.timeGap || 'N/A'}</p><p class="vs-stat-lbl">Time difference</p></div>
+      </div>
+    </div>
+
+    <div class="compare-grid">
+      <div class="path-col ${winner === 'college' ? 'winner college' : ''}">
+        <div class="path-header college">
+          <div>
+            <p class="path-type college">College path</p>
+            <p class="path-title">${cp.title || 'College degree'}</p>
+          </div>
+          ${winner === 'college' ? '<span class="winner-badge college">Winner</span>' : ''}
+        </div>
+        <div class="path-body">
+          <div class="path-stat-row"><span class="path-stat-lbl">Total cost in ${r.state}</span><span class="path-stat-val">${cp.totalCost || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Duration</span><span class="path-stat-val">${cp.duration || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Credential earned</span><span class="path-stat-val">${cp.credential || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Starting salary</span><span class="path-stat-val">${cp.salaryAtEntry || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Salary at 5 years</span><span class="path-stat-val">${cp.salaryAt5Years || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Median salary</span><span class="path-stat-val">${cp.salaryMedian || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Hiring rate</span><span class="path-stat-val">${cp.hiringRate || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Debt at graduation</span><span class="path-stat-val">${cp.debtAtGraduation || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Breakeven</span><span class="path-stat-val">${cp.breakevenYears ? cp.breakevenYears + ' years' : 'N/A'}</span></div>
+          <div class="pros-cons">
+            <p class="pc-label pro">Pros</p>
+            ${(cp.pros || []).map(p => `<div class="pc-item"><span class="pc-dot pro"></span>${p}</div>`).join('')}
+            <p class="pc-label con" style="margin-top:.5rem;">Cons</p>
+            ${(cp.cons || []).map(c => `<div class="pc-item"><span class="pc-dot con"></span>${c}</div>`).join('')}
+          </div>
+          ${(cp.bestSchoolsInState || []).length > 0 ? `
+          <div class="schools-wrap">
+            <p style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:.4rem;">Schools in ${r.state}</p>
+            ${cp.bestSchoolsInState.map(s => `<span class="school-tag">${s}</span>`).join('')}
+          </div>` : ''}
+          <div class="ai-note-row ${cp.aiRisk || 'medium'}">
+            <strong style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;">AI risk: ${(cp.aiRisk || 'medium').toUpperCase()}</strong><br>${cp.aiNote || ''}
+          </div>
+        </div>
+      </div>
+
+      <div class="path-col ${winner === 'trade' ? 'winner trade' : ''}">
+        <div class="path-header trade">
+          <div>
+            <p class="path-type trade">Trade path</p>
+            <p class="path-title">${tp.title || 'Trade / vocational'}</p>
+          </div>
+          ${winner === 'trade' ? '<span class="winner-badge trade">Winner</span>' : ''}
+        </div>
+        <div class="path-body">
+          <div class="path-stat-row"><span class="path-stat-lbl">Total cost in ${r.state}</span><span class="path-stat-val">${tp.totalCost || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Duration</span><span class="path-stat-val">${tp.duration || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Credential earned</span><span class="path-stat-val">${tp.credential || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Starting salary</span><span class="path-stat-val">${tp.salaryAtEntry || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Salary at 5 years</span><span class="path-stat-val">${tp.salaryAt5Years || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Median salary</span><span class="path-stat-val">${tp.salaryMedian || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Hiring rate</span><span class="path-stat-val">${tp.hiringRate || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Debt at graduation</span><span class="path-stat-val">${tp.debtAtGraduation || 'N/A'}</span></div>
+          <div class="path-stat-row"><span class="path-stat-lbl">Breakeven</span><span class="path-stat-val">${tp.breakevenYears ? tp.breakevenYears + ' years' : 'N/A'}</span></div>
+          <div class="pros-cons">
+            <p class="pc-label pro">Pros</p>
+            ${(tp.pros || []).map(p => `<div class="pc-item"><span class="pc-dot pro"></span>${p}</div>`).join('')}
+            <p class="pc-label con" style="margin-top:.5rem;">Cons</p>
+            ${(tp.cons || []).map(c => `<div class="pc-item"><span class="pc-dot con"></span>${c}</div>`).join('')}
+          </div>
+          ${(tp.bestSchoolsInState || []).length > 0 ? `
+          <div class="schools-wrap">
+            <p style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:.4rem;">Programs in ${r.state}</p>
+            ${tp.bestSchoolsInState.map(s => `<span class="school-tag">${s}</span>`).join('')}
+          </div>` : ''}
+          <div class="ai-note-row ${tp.aiRisk || 'medium'}">
+            <strong style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;">AI risk: ${(tp.aiRisk || 'medium').toUpperCase()}</strong><br>${tp.aiNote || ''}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${r.hybridOption && r.hybridOption.exists ? `
+    <div class="hybrid-block">
+      <p class="hybrid-label">There is also a hybrid path</p>
+      <p class="hybrid-body">${r.hybridOption.description || ''}</p>
+    </div>` : ''}
+
+    <div class="who-grid">
+      <div class="who-card">
+        <p class="who-label college">Choose college if...</p>
+        <p class="who-body">${v.bestForWhoCollege || ''}</p>
+      </div>
+      <div class="who-card">
+        <p class="who-label trade">Choose trade if...</p>
+        <p class="who-body">${v.bestForWhoTrade || ''}</p>
+      </div>
+    </div>
+
+    ${(r.relatedComparisons || []).length > 0 ? `
+    <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.625rem;">Related comparisons</p>
+    <div class="related-row">${r.relatedComparisons.map(f => `<button class="related-pill" onclick="quickCompare('${f}','${r.state}')">${f} in ${r.state}</button>`).join('')}</div>` : ''}
+
+    <div class="divider"></div>
+    <div class="cta-grid">
+      <a href="report.html?career=${encodeURIComponent(r.field)}&state=${encodeURIComponent(r.state)}" class="cta-card">
+        <p class="cta-lbl">Take it further</p>
+        <p class="cta-title">Generate my report</p>
+        <p style="font-size:12px;color:var(--text-muted);">Get a full PDF with action plan</p>
+        <span class="cta-arrow">Generate PDF →</span>
+      </a>
+      <a href="path-planner.html" class="cta-card">
+        <p class="cta-lbl">Plan by state</p>
+        <p class="cta-title">Path Planner</p>
+        <p style="font-size:12px;color:var(--text-muted);">Full tuition tiers and state comparison</p>
+        <span class="cta-arrow">Plan my path →</span>
+      </a>
+      <a href="career-stats.html" class="cta-card">
+        <p class="cta-lbl">Deep dive</p>
+        <p class="cta-title">Career Income and Stats</p>
+        <p style="font-size:12px;color:var(--text-muted);">Full salary and AI risk by state</p>
+        <span class="cta-arrow">Look it up →</span>
+      </a>
+    </div>
+  `;
+
+  panel.classList.add('show');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function runComparison() {
+  const field = document.getElementById('field-in').value.trim();
+  const state = document.getElementById('state-in').value;
+  if (!field) { document.getElementById('field-in').focus(); return; }
+  if (!state) { document.getElementById('state-in').focus(); return; }
+  document.getElementById('error-box').classList.remove('show');
+  startLoading();
+  try {
+    const res = await fetch('/api/compare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ field, state })
+    });
+    stopLoading();
+    if (!res.ok) { const err = await res.json(); showError(err.error || 'Something went wrong.'); return; }
+    const data = await res.json();
+    render(data);
+  } catch (err) {
+    stopLoading();
+    showError('Could not reach the server. Please check your connection and try again.');
+  }
+}
+
+function quickCompare(field, state) {
+  document.getElementById('field-in').value = field;
+  document.getElementById('state-in').value = state;
+  runComparison();
+}
+
+document.getElementById('field-in').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runComparison();
+});
+</script>
+</body>
+</html>

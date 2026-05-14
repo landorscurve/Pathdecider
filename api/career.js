@@ -5,58 +5,69 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  let { career } = req.body;
+  let { career, state } = req.body;
   if (!career) return res.status(400).json({ error: 'Career is required' });
   career = career.trim();
+  state = (state || '').trim();
 
-  const system = `You are the PathDecider Career Data Engine. Analyze any career, job title, or occupation entered — even informal, misspelled, or highly specific terms like "regenerative farmer", "live sound engineer", or "Python developer". Interpret it as the closest real occupation and respond with accurate labor market data drawn from your knowledge of BLS, O*NET, Brookings, and industry research through August 2025.
+  const isNational = !state || state === 'National (US Average)';
+  const stateContext = isNational
+    ? 'Provide national US average salary and job market data.'
+    : `The user wants data specific to ${state}. Provide ${state}-specific salary figures from BLS state occupational employment data where available. Note how ${state} compares to the national average. Include the top 2-3 metro areas in ${state} where this career is most in demand. Include a cost of living note for ${state}.`;
+
+  const system = `You are the PathDecider Career Data Engine. Analyze any career, job title, or occupation — even informal, misspelled, or highly specific terms like "regenerative farmer", "live sound engineer", or "Python developer". Interpret it as the closest real occupation and respond with accurate labor market data from your knowledge of BLS, O*NET, Brookings, and industry research through August 2025.
+
+${stateContext}
 
 CRITICAL JSON RULES:
 - Respond ONLY with a valid JSON object, nothing else
-- Do NOT use contractions: write "do not" not "don't", "will not" not "won't"
+- Do NOT use contractions: write "do not" not "don't"
 - Do NOT use apostrophes anywhere in response text
 - Use only straight double quotes for JSON strings
-- No markdown, no backticks, no preamble, no explanation outside the JSON
-
-Return this exact structure:
+- No markdown, no backticks, no preamble
 
 {
-  "career": "clean, specific career name (e.g. Live Sound Engineer, Regenerative Farmer, Python Developer)",
+  "career": "clean specific career name",
+  "state": "${isNational ? 'National US Average' : state}",
   "pathType": "college or trade or both or license",
-  "pathTypeLabel": "human-readable label e.g. Trade / apprenticeship or College degree required or Degree or self-taught",
-  "description": "2-3 sentences describing the career honestly. No apostrophes or contractions. Be specific about what the work actually involves day to day.",
-  "usWorkers": "approximate number currently employed in the US e.g. 404,800",
+  "pathTypeLabel": "human-readable label e.g. Trade / apprenticeship or College degree required",
+  "description": "2-3 sentences on what the work actually involves day to day. No apostrophes.",
+  "usWorkers": "approximate US total e.g. 404,800",
+  "stateWorkers": "${isNational ? 'omit this field' : 'approximate number employed in ' + state}",
   "jobGrowth": "BLS projected growth e.g. +8% or -3%",
-  "growthNote": "brief note on projection period and context e.g. projected 2022-32, faster than average",
-  "salaryEntry": "entry level annual salary e.g. $38,000",
-  "salaryMedian": "median annual salary e.g. $61,590",
-  "salaryTop": "top 10 percent annual salary e.g. $98,000",
-  "salaryChartEntry": integer salary in thousands for chart e.g. 38,
-  "salaryChartMedian": integer salary in thousands for chart e.g. 62,
-  "salaryChartTop": integer salary in thousands for chart e.g. 98,
-  "fieldAlignment": integer 0-100 representing percent who work in a related field after training,
-  "fieldAlignmentNote": "one sentence explaining the alignment stat. No apostrophes.",
+  "growthNote": "brief context e.g. projected 2022-32, faster than average",
+  "salaryEntry": "entry level salary${isNational ? '' : ' in ' + state} e.g. $38,000",
+  "salaryMedian": "median salary${isNational ? '' : ' in ' + state} e.g. $61,590",
+  "salaryTop": "top 10 percent salary${isNational ? '' : ' in ' + state} e.g. $98,000",
+  "salaryChartEntry": integer thousands e.g. 38,
+  "salaryChartMedian": integer thousands e.g. 62,
+  "salaryChartTop": integer thousands e.g. 98,
+  "nationalMedian": "${isNational ? 'same as salaryMedian' : 'national median for comparison e.g. $61,590'}",
+  "costOfLivingNote": "${isNational ? 'omit this field' : 'one sentence on cost of living in ' + state + ' vs national average. No apostrophes.'}",
+  "topMetros": ${isNational ? '["Top US metro 1", "Top US metro 2", "Top US metro 3"]' : '["Top metro in ' + state + ' 1", "metro 2", "metro 3"]'},
+  "topMetrosNote": "${isNational ? 'one sentence on top US metros for this career' : 'one sentence on where in ' + state + ' this career is strongest. No apostrophes.'}",
+  "fieldAlignment": integer 0-100,
+  "fieldAlignmentNote": "one sentence. No apostrophes.",
   "entryPaths": [
-    {"pct": "65%", "label": "Path name", "note": "Specific detail about this entry path", "color": "#1D9E75"},
-    {"pct": "25%", "label": "Path name", "note": "Specific detail about this entry path", "color": "#378ADD"},
-    {"pct": "10%", "label": "Path name", "note": "Specific detail about this entry path", "color": "#7F77DD"}
+    {"pct": "65%", "label": "Path name", "note": "specific detail", "color": "#1D9E75"},
+    {"pct": "25%", "label": "Path name", "note": "specific detail", "color": "#378ADD"},
+    {"pct": "10%", "label": "Path name", "note": "specific detail", "color": "#7F77DD"}
   ],
   "aiRisk": "low or medium or high",
-  "aiTitle": "One sentence risk summary. No apostrophes or contractions.",
-  "aiBody": "2-3 sentences on what is automating and what is not. Specific tasks. No apostrophes or contractions.",
+  "aiTitle": "one sentence risk summary. No apostrophes.",
+  "aiBody": "2-3 sentences on what is automating and what is not. No apostrophes.",
   "displacementScore": integer 0-100,
   "historicalSpeed": integer 0-100,
   "currentAISpeed": integer 0-100,
   "adaptationDifficulty": integer 0-100,
-  "tasksAtRisk": ["specific task being automated", "specific task", "specific task", "specific task"],
-  "tasksSurvive": ["specific human task that remains", "specific task", "specific task"],
+  "tasksAtRisk": ["specific task", "specific task", "specific task", "specific task"],
+  "tasksSurvive": ["specific human task", "specific task", "specific task"],
   "masterOrOperator": "Master or Operator or Both",
-  "masterOrOperatorNote": "One sentence explaining which Landors Curve path applies to this career. No apostrophes.",
+  "masterOrOperatorNote": "one sentence. No apostrophes.",
   "relatedCareers": ["Related career 1", "Related career 2", "Related career 3"]
 }
 
-For colors in entryPaths use: #1D9E75 (green/trade), #185FA5 (blue/college), #378ADD (blue-light), #7F77DD (purple), #D85A30 (coral), #888780 (gray).
-Be accurate with salary data. Use BLS Occupational Employment Statistics where possible. For emerging or niche careers, give honest ranges with appropriate uncertainty.`;
+Use #1D9E75 green for trade/vocational paths, #185FA5 blue for college paths, #378ADD light blue, #7F77DD purple, #D85A30 coral, #888780 gray for entry path colors.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -68,9 +79,9 @@ Be accurate with salary data. Use BLS Occupational Employment Statistics where p
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5',
-        max_tokens: 1800,
+        max_tokens: 2000,
         system,
-        messages: [{ role: 'user', content: `Look up career data for: ${career}` }]
+        messages: [{ role: 'user', content: `Look up career data for: ${career}${isNational ? '' : ' in ' + state}` }]
       })
     });
 
@@ -84,9 +95,7 @@ Be accurate with salary data. Use BLS Occupational Employment Statistics where p
     const result = robustParse(txt);
     return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({
-      error: 'We had trouble looking up that career. Please try again.'
-    });
+    return res.status(500).json({ error: 'We had trouble looking up that career. Please try again.' });
   }
 }
 

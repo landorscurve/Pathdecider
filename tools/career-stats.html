@@ -4,18 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Career Income and Stats Lookup | PathDecider</title>
-  <meta name="description" content="Search any job title to see income, outlook, education path, and related careers." />
+  <meta name="description" content="Search any job title to see income, outlook, education path, and AI risk." />
   <link rel="stylesheet" href="../css/main.css" />
   <style>
     .search-row{display:flex;gap:8px;margin-bottom:1.25rem;}
     .search-row input{flex:1;font-family:'DM Sans',sans-serif;font-size:15px;padding:0 16px;height:48px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:#fff;color:var(--text);outline:none;}
     .search-row input:focus{border-color:var(--coral);}
-    .search-row button{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:0 22px;height:48px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;white-space:nowrap;}
+    .search-row button{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:0 22px;height:48px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;white-space:nowrap;transition:opacity .15s;}
+    .search-row button:hover{opacity:.88;}
+    .search-row button:disabled{background:#ccc;cursor:not-allowed;}
     .suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2rem;}
     .sug-pill{font-size:12px;padding:6px 14px;border:0.5px solid var(--border-med);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
     .sug-pill:hover{background:var(--gray-100);}
+
+    /* LOADING */
+    .loading-box{display:none;text-align:center;padding:3rem 1rem;}
+    .loading-box.show{display:block;}
+    .spinner{width:40px;height:40px;border:2px solid var(--gray-100);border-top-color:var(--coral);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:.35rem;}
+    .loading-sub{font-size:12px;color:var(--text-muted);}
+
+    /* ERROR */
+    .error-box{display:none;padding:1rem 1.25rem;background:#FAECE7;border-radius:var(--radius);border-left:3px solid var(--coral);font-size:13px;color:var(--coral-dark);margin-bottom:1rem;}
+    .error-box.show{display:block;}
+
+    /* RESULTS */
     .results{display:none;}.results.show{display:block;}
-    .alias-note{font-size:12px;color:var(--text-hint);font-style:italic;margin-bottom:1rem;padding:.5rem .75rem;background:var(--gray-50);border-radius:var(--radius);display:inline-block;}
     .career-title-row{display:flex;align-items:baseline;gap:12px;margin-bottom:.25rem;flex-wrap:wrap;}
     .career-name{font-family:'DM Serif Display',serif;font-size:26px;font-weight:400;}
     .career-type{font-size:11px;padding:4px 12px;border-radius:100px;font-weight:500;}
@@ -41,20 +56,46 @@
     .bar-label-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:3px;}
     .bar-track{height:8px;background:var(--gray-100);border-radius:4px;overflow:hidden;}
     .bar-inner{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.25,.46,.45,.94);}
-    .ai-block{border-left:3px solid var(--border);padding:.875rem 1rem;margin-bottom:1.5rem;border-radius:0 var(--radius) var(--radius) 0;}
-    .ai-block.low{border-left-color:#1D9E75;}.ai-block.medium{border-left-color:#BA7517;}.ai-block.high{border-left-color:#D85A30;}
-    .ai-block-title{font-size:13px;font-weight:500;margin-bottom:.3rem;}
-    .ai-block-body{font-size:12px;color:var(--text-muted);line-height:1.5;}
+
+    /* AI RISK BLOCK — expanded with Landor's data */
+    .ai-block{border-left:3px solid var(--border);padding:1rem 1.25rem;margin-bottom:1.5rem;border-radius:0 var(--radius-lg) var(--radius-lg) 0;background:var(--gray-50);}
+    .ai-block.low{border-left-color:#1D9E75;}
+    .ai-block.medium{border-left-color:#BA7517;}
+    .ai-block.high{border-left-color:#D85A30;}
+    .ai-block-title{font-size:13px;font-weight:500;margin-bottom:.35rem;}
+    .ai-block-body{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:1rem;}
+    .landor-bars{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;}
+    .lbar{display:grid;grid-template-columns:140px 1fr 40px;gap:8px;align-items:center;}
+    .lbar-lbl{font-size:11px;color:var(--text-muted);}
+    .lbar-track{height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden;}
+    .lbar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.25,.46,.45,.94);width:0%;}
+    .lbar-val{font-size:11px;color:var(--text-hint);text-align:right;}
+    .tasks-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:.5rem;}
+    .tasks-col-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;}
+    .tasks-col-title.risk{color:#D85A30;}
+    .tasks-col-title.safe{color:#1D9E75;}
+    .task-tag{font-size:11px;padding:4px 10px;border-radius:100px;display:inline-block;margin:2px 2px 2px 0;}
+    .task-tag.risk{background:#FAECE7;color:#712B13;}
+    .task-tag.safe{background:#E1F5EE;color:#085041;}
+    .master-note{font-size:12px;color:var(--text-muted);padding:.625rem .875rem;background:var(--gray-100);border-radius:var(--radius);margin-top:.5rem;}
+    .master-note strong{color:var(--text);}
+
     .divider{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0;}
+    .related-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem;}
+    .related-pill{font-size:12px;padding:6px 14px;border:0.5px solid var(--border-med);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+    .related-pill:hover{background:var(--gray-100);}
     .cta-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
     .cta-text p:first-child{font-size:14px;font-weight:500;margin-bottom:.2rem;}
     .cta-text p:last-child{font-size:12px;color:var(--text-muted);}
-    .cta-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 16px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block;}
-    .no-results{padding:1.5rem;background:var(--gray-50);border-radius:var(--radius-lg);}
-    .no-results-title{font-size:14px;font-weight:500;margin-bottom:1rem;color:var(--text);}
-    .related-list{display:flex;flex-wrap:wrap;gap:8px;}
-    .related-pill{font-size:13px;padding:8px 16px;border:0.5px solid var(--border-med);border-radius:100px;background:#fff;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
-    .related-pill:hover{background:var(--gray-100);}
+    .cta-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 16px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:transparent;color:var(--text);text-decoration:none;display:inline-block;white-space:nowrap;}
+    .landors-link{font-size:12px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-top:.75rem;}
+    .landors-link a{color:var(--coral);text-decoration:none;}
+    .landors-link a:hover{text-decoration:underline;}
+
+    @media(max-width:560px){
+      .tasks-row{grid-template-columns:1fr;}
+      .lbar{grid-template-columns:100px 1fr 36px;}
+    }
   </style>
 </head>
 <body class="tool-page">
@@ -73,663 +114,243 @@
   <a href="../index.html" style="font-size:13px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-bottom:2rem;text-decoration:none;">← All tools</a>
   <p style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-hint);margin-bottom:.5rem;">Career Income and Stats Lookup</p>
   <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(24px,4.5vw,42px);font-weight:400;line-height:1.15;margin-bottom:.75rem;">What does that career actually look like,<br>and how much does it pay?</h1>
-  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:560px;">Search any job title to see income, outlook, education path, and related careers.</p>
+  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:560px;">Search any job title to see income, outlook, education path, and AI risk — including niche and emerging careers.</p>
 
   <div class="search-row">
-    <input type="text" id="career-input" placeholder="e.g. firefighter, farmer, live sound engineer..." />
-    <button onclick="doSearch()">Look Up a Career</button>
+    <input type="text" id="career-input" placeholder="e.g. firefighter, regenerative farmer, live sound engineer..." />
+    <button id="search-btn" onclick="doSearch()">Look Up a Career</button>
   </div>
 
-  <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.625rem;">Popular searches</p>
+  <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.625rem;">Try these</p>
   <div class="suggestions">
     <button class="sug-pill" onclick="quickSearch('welder')">Welder</button>
     <button class="sug-pill" onclick="quickSearch('registered nurse')">Registered nurse</button>
-    <button class="sug-pill" onclick="quickSearch('software engineer')">Software engineer</button>
-    <button class="sug-pill" onclick="quickSearch('farmer')">Farmer</button>
-    <button class="sug-pill" onclick="quickSearch('electrician')">Electrician</button>
-    <button class="sug-pill" onclick="quickSearch('firefighter')">Firefighter</button>
+    <button class="sug-pill" onclick="quickSearch('regenerative farmer')">Regenerative farmer</button>
     <button class="sug-pill" onclick="quickSearch('live sound engineer')">Live sound engineer</button>
+    <button class="sug-pill" onclick="quickSearch('Python developer')">Python developer</button>
+    <button class="sug-pill" onclick="quickSearch('electrician')">Electrician</button>
+    <button class="sug-pill" onclick="quickSearch('UX designer')">UX designer</button>
+    <button class="sug-pill" onclick="quickSearch('firefighter')">Firefighter</button>
     <button class="sug-pill" onclick="quickSearch('physical therapist')">Physical therapist</button>
-    <button class="sug-pill" onclick="quickSearch('ux designer')">UX designer</button>
-    <button class="sug-pill" onclick="quickSearch('teacher')">Teacher</button>
+    <button class="sug-pill" onclick="quickSearch('SQL analyst')">SQL analyst</button>
+    <button class="sug-pill" onclick="quickSearch('drone pilot')">Drone pilot</button>
     <button class="sug-pill" onclick="quickSearch('lawyer')">Lawyer</button>
-    <button class="sug-pill" onclick="quickSearch('paramedic')">Paramedic</button>
   </div>
 
+  <div class="error-box" id="error-box"></div>
+  <div class="loading-box" id="loading-box">
+    <div class="spinner"></div>
+    <p class="loading-title" id="loading-title">Looking up career data...</p>
+    <p class="loading-sub" id="loading-sub">Pulling salary, outlook, and AI risk...</p>
+  </div>
   <div class="results" id="results-panel"></div>
 </div>
 
 <footer style="margin-top:4rem;">
   <span class="footer-logo">PathDecider<span style="color:var(--coral);">.</span></span>
-  <span class="footer-note">Data based on BLS/O*NET. August 2025.</span>
-  <ul class="footer-links"><li><a href="../index.html">Home</a></li><li><a href="degree-roi.html">ROI Calculator</a></li></ul>
+  <span class="footer-note">Powered by Claude AI. Data from BLS/O*NET through August 2025.</span>
+  <ul class="footer-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="degree-roi.html">ROI Calculator</a></li>
+  </ul>
 </footer>
 
 <script>
-// ─── CAREER DATABASE ──────────────────────────────────────────────────────────
-// Each entry has a "searchTerms" array — these are the EXACT phrases that should
-// land on this career. The fuzzy fallback only fires if nothing matches here first.
-const CAREERS = [
-  {
-    key: 'welder',
-    name: 'Welder', type: 'trade', typeLabel: 'Trade / vocational',
-    searchTerms: ['welder','welders','welding','welds'],
-    desc: 'Welders join metal parts using heat and various techniques. High demand across manufacturing, construction, oil and gas, and aerospace. One of the strongest field-to-training alignment rates of any occupation.',
-    workers: '404,800', growth: '+3%', growthNote: 'projected 2022-32',
-    salaryEntry: '$38,000', salaryMedian: '$47,010', salaryTop: '$72,000',
-    paths: [{pct:'72%',label:'Trade school / apprenticeship',note:'Most welders train through vocational programs or union apprenticeships (2-4 years)',color:'#1D9E75'},{pct:'18%',label:'On-the-job training',note:'Some entry-level roles provide training, especially in manufacturing',color:'#378ADD'},{pct:'10%',label:'Community college',note:'Associate degrees in welding technology available but rarely required',color:'#7F77DD'}],
-    fieldAlignment: 87, fieldAlignmentNote: 'of welders work directly in welding or closely related fabrication roles',
-    aiRisk: 'medium', aiTitle: 'Moderate automation risk. Skilled welders are safer.',
-    aiBody: 'Robotic welding handles repetitive production runs. Custom, structural, and repair welding requires human judgment. Certified welders in specialized areas (pipe, aerospace, underwater) face very low displacement risk.',
-    salaryChart: {entry:38,median:47,top:72}
-  },
-  {
-    key: 'registered nurse',
-    name: 'Registered Nurse', type: 'college', typeLabel: 'College degree required',
-    searchTerms: ['registered nurse','nurse','rn','nursing','nurses','lpn','licensed practical nurse','travel nurse'],
-    desc: 'RNs provide patient care, educate patients, and coordinate with healthcare teams. One of the largest and most stable occupations in the US, with strong demand driven by an aging population.',
-    workers: '3,130,600', growth: '+6%', growthNote: 'projected 2022-32',
-    salaryEntry: '$59,000', salaryMedian: '$81,220', salaryTop: '$120,000',
-    paths: [{pct:'61%',label:"Bachelor's degree (BSN)",note:'Most hospitals now require or prefer a 4-year BSN degree',color:'#185FA5'},{pct:'35%',label:'Associate degree (ADN)',note:'2-year community college programs still widely accepted',color:'#7F77DD'},{pct:'4%',label:'Diploma programs',note:'Hospital-based training programs, now rare',color:'#888780'}],
-    fieldAlignment: 94, fieldAlignmentNote: 'of nursing graduates work in healthcare. One of the highest alignment rates.',
-    aiRisk: 'low', aiTitle: 'Low automation risk. Nursing is highly human.',
-    aiBody: 'Patient care requires empathy, real-time judgment, and physical presence that AI cannot replicate. Nursing is consistently ranked among the most automation-resistant careers.',
-    salaryChart: {entry:59,median:81,top:120}
-  },
-  {
-    key: 'software engineer',
-    name: 'Software Engineer', type: 'college', typeLabel: 'Degree or bootcamp',
-    searchTerms: ['software engineer','software developer','developer','programmer','coder','swe','software dev','app developer','backend developer','backend engineer','frontend engineer','full stack engineer','full stack developer','computer programmer'],
-    desc: 'Software engineers design, build, and maintain software systems. One of the fastest-growing and highest-paying fields, but also one of the most directly affected by AI-assisted coding tools.',
-    workers: '1,847,900', growth: '+25%', growthNote: 'projected 2022-32, much faster than average',
-    salaryEntry: '$74,000', salaryMedian: '$130,160', salaryTop: '$208,000',
-    paths: [{pct:'67%',label:'Computer science degree',note:'4-year CS or software engineering degree remains the most common path',color:'#185FA5'},{pct:'20%',label:'Coding bootcamp',note:'Intensive 3-6 month programs effective for entry-level roles',color:'#1D9E75'},{pct:'13%',label:'Self-taught / other degree',note:'A meaningful share enter from adjacent fields with self-learned coding skills',color:'#7F77DD'}],
-    fieldAlignment: 61, fieldAlignmentNote: 'of CS graduates work in software or closely related technical roles',
-    aiRisk: 'medium', aiTitle: 'Nuanced AI risk. Junior roles most exposed.',
-    aiBody: 'AI coding tools are automating significant portions of routine code generation. Entry-level coding jobs face real pressure. Senior engineers who direct AI and architect systems remain in high demand.',
-    salaryChart: {entry:74,median:130,top:208}
-  },
-  {
-    key: 'farmer',
-    name: 'Farmer / Agricultural Producer', type: 'both', typeLabel: 'Degree or experience-based',
-    searchTerms: ['farmer','farmers','farming','farm','agriculture','agricultural producer','crop farmer','livestock farmer','regenerative farmer','organic farmer','row crop farmer','vegetable farmer','dairy farmer','rancher','ranch','ranching','homesteader','permaculture farmer','small farm','market farmer','market gardener','agribusiness'],
-    desc: 'Farmers and agricultural producers grow crops, raise livestock, and manage land to produce food and fiber. The role ranges from large-scale commodity farming to small regenerative and specialty operations. Income varies enormously based on scale, crop type, and market access.',
-    workers: '862,000', growth: '-2%', growthNote: 'projected 2022-32, consolidation reducing small farm numbers',
-    salaryEntry: '$28,000', salaryMedian: '$78,960', salaryTop: '$160,000',
-    paths: [{pct:'40%',label:"Bachelor's degree (agriculture, agronomy, animal science)",note:'Land-grant universities offer strong agriculture programs. Not required but increasingly valued for farm management and business roles.',color:'#185FA5'},{pct:'35%',label:'Family farm / apprenticeship',note:'Many farmers learn through family operations, apprenticeships, or programs like the USDA Beginning Farmer programs.',color:'#1D9E75'},{pct:'25%',label:'Self-taught / career change',note:'A growing segment of new farmers come from other careers and learn through extension services, WWOOF, and farming communities.',color:'#7F77DD'}],
-    fieldAlignment: 72, fieldAlignmentNote: 'of agriculture graduates work in farming, food systems, or closely related land-based roles',
-    aiRisk: 'low', aiTitle: 'Low automation risk for skilled operators. Some tasks are automating.',
-    aiBody: 'Precision agriculture, autonomous tractors, and drone monitoring are changing how farms operate. But farm management requires deep contextual judgment about soil, weather, markets, and biology that cannot be fully automated. Regenerative and specialty farmers face very low displacement risk.',
-    salaryChart: {entry:28,median:79,top:160}
-  },
-  {
-    key: 'live sound engineer',
-    name: 'Live Sound Engineer', type: 'both', typeLabel: 'Trade school or self-trained',
-    searchTerms: ['live sound engineer','live sound','live audio engineer','live audio','concert sound engineer','front of house engineer','foh engineer','foh','monitor engineer','touring sound engineer','festival sound','live production','pa engineer','sound guy','sound person','touring audio'],
-    desc: 'Live sound engineers mix and manage audio at concerts, festivals, theater performances, houses of worship, and corporate events. The role requires deep knowledge of acoustics, signal flow, speaker systems, and real-time problem solving under pressure.',
-    workers: '16,400', growth: '+3%', growthNote: 'projected 2022-32 across audio production',
-    salaryEntry: '$28,000', salaryMedian: '$52,000', salaryTop: '$110,000',
-    paths: [{pct:'35%',label:'Audio engineering school / trade program',note:'Full Sail, SAE Institute, and similar programs. Also community college audio programs and vocational training.',color:'#185FA5'},{pct:'40%',label:'Self-taught / apprenticeship',note:'Many live engineers start as stagehands, run cable, and work their way up by watching and assisting experienced engineers.',color:'#1D9E75'},{pct:'25%',label:'Music school or related degree',note:'Berklee, MI, and other music schools. Some come from music performance backgrounds.',color:'#7F77DD'}],
-    fieldAlignment: 55, fieldAlignmentNote: 'of audio graduates work in live sound or closely related production roles',
-    aiRisk: 'low', aiTitle: 'Very low automation risk. Live events require humans.',
-    aiBody: 'Live sound mixing is real-time, reactive, and highly situational. Every room, artist, and show is different. AI tools assist with system alignment and measurement but cannot replace a skilled engineer at a live event. The live events industry is growing, not shrinking.',
-    salaryChart: {entry:28,median:52,top:110}
-  },
-  {
-    key: 'studio recording engineer',
-    name: 'Studio Recording Engineer', type: 'both', typeLabel: 'Degree or self-trained',
-    searchTerms: ['recording engineer','studio engineer','studio recording','tracking engineer','recording studio','mix engineer','mixing engineer','mastering engineer','music producer','record producer','audio producer','studio producer','beatmaker','beat producer'],
-    desc: 'Studio recording engineers and producers capture, edit, mix, and master audio for music, film, TV, and podcasts. The role ranges from technical recording to creative production and can overlap significantly with music production.',
-    workers: '12,000', growth: '+1%', growthNote: 'projected 2022-32, streaming growth offsetting some consolidation',
-    salaryEntry: '$26,000', salaryMedian: '$48,000', salaryTop: '$120,000',
-    paths: [{pct:'40%',label:'Audio engineering school',note:'Full Sail, Berklee Online, SAE Institute, and similar specialized programs',color:'#185FA5'},{pct:'35%',label:'Self-taught / home studio',note:'A large share of working producers are self-taught through YouTube, online courses, and years of practice',color:'#1D9E75'},{pct:'25%',label:'Music school or related degree',note:'Music technology, music production, or music business degrees from colleges and universities',color:'#7F77DD'}],
-    fieldAlignment: 45, fieldAlignmentNote: 'of audio production graduates work in studio recording or closely related music production roles',
-    aiRisk: 'medium', aiTitle: 'Moderate risk. AI mastering is real, creative production is not.',
-    aiBody: 'AI mastering tools (LANDR, iZotope) are automating basic mastering and mixing tasks. Creative production, arrangement, and artist development remain deeply human. Engineers who develop a signature sound and artist relationships are well protected.',
-    salaryChart: {entry:26,median:48,top:120}
-  },
-  {
-    key: 'audio technician',
-    name: 'Audio / Visual Technician', type: 'trade', typeLabel: 'Trade school or certification',
-    searchTerms: ['audio technician','audio tech','av technician','av tech','audiovisual technician','sound technician','broadcast technician','technical director','av specialist','audio visual','church audio','house of worship audio'],
-    desc: 'AV technicians set up and operate audio, video, and lighting equipment for corporate events, houses of worship, broadcast facilities, and conference centers. A stable trade role with consistent demand across industries.',
-    workers: '95,000', growth: '+5%', growthNote: 'projected 2022-32',
-    salaryEntry: '$32,000', salaryMedian: '$52,390', salaryTop: '$88,000',
-    paths: [{pct:'45%',label:'Trade school / certificate program',note:'Community college AV programs, manufacturer certifications (Crestron, Extron, Dante), and CTS certification from AVIXA',color:'#1D9E75'},{pct:'35%',label:'On-the-job training',note:'Many AV techs start as general event staff and specialize through employer training',color:'#378ADD'},{pct:'20%',label:'Audio engineering school',note:'Some crossover from audio engineering programs into corporate AV roles',color:'#185FA5'}],
-    fieldAlignment: 70, fieldAlignmentNote: 'of AV graduates work in audiovisual production or closely related technical roles',
-    aiRisk: 'low', aiTitle: 'Low automation risk. Physical setup and real-time support are human.',
-    aiBody: 'AV work involves physical installation, troubleshooting unique room configurations, and real-time event support. These are resistant to automation. Growing demand from corporate events and hybrid meeting infrastructure.',
-    salaryChart: {entry:32,median:52,top:88}
-  },
-  {
-    key: 'truck driver',
-    name: 'Truck Driver', type: 'trade', typeLabel: 'CDL license required',
-    searchTerms: ['truck driver','trucker','cdl driver','semi driver','tractor trailer','semi truck driver','big rig driver','long haul driver','otr driver','flatbed driver','cdl','commercial driver'],
-    desc: 'Heavy and tractor-trailer truck drivers transport goods across the country. Currently one of the most common jobs in the US and one of the most discussed in the context of autonomous vehicle technology.',
-    workers: '2,097,000', growth: '+4%', growthNote: 'projected 2022-32',
-    salaryEntry: '$42,000', salaryMedian: '$54,320', salaryTop: '$79,000',
-    paths: [{pct:'81%',label:'CDL training program',note:"Commercial Driver's License obtained through 3-8 week training programs",color:'#1D9E75'},{pct:'14%',label:'Company-sponsored training',note:'Many carriers offer paid CDL training in exchange for a commitment period',color:'#378ADD'},{pct:'5%',label:'Military background',note:'Military logistics and transportation experience often translates directly',color:'#888780'}],
-    fieldAlignment: 91, fieldAlignmentNote: 'of CDL holders work in transportation. Among the highest alignment rates.',
-    aiRisk: 'high', aiTitle: 'High long-term automation risk. Timeline uncertain.',
-    aiBody: 'Autonomous trucking is actively being developed. Full deployment faces regulatory, infrastructure, and liability hurdles. Local and last-mile delivery remains human-dependent for the foreseeable future.',
-    salaryChart: {entry:42,median:54,top:79}
-  },
-  {
-    key: 'electrician',
-    name: 'Electrician', type: 'trade', typeLabel: 'Trade / apprenticeship',
-    searchTerms: ['electrician','electricians','electrical worker','electrical contractor','journeyman electrician','master electrician','apprentice electrician','electrical technician','lineman','line worker','power lineman'],
-    desc: 'Electricians install, maintain, and repair electrical systems in homes, businesses, and factories. One of the most consistently in-demand trades, with strong earnings and limited automation risk.',
-    workers: '762,600', growth: '+11%', growthNote: 'projected 2022-32, faster than average',
-    salaryEntry: '$41,000', salaryMedian: '$61,590', salaryTop: '$98,000',
-    paths: [{pct:'78%',label:'Apprenticeship (IBEW/NECA)',note:'4-5 year union apprenticeships combining paid on-the-job training with classroom instruction',color:'#1D9E75'},{pct:'16%',label:'Trade school',note:'Vocational programs (1-2 years) provide foundational training',color:'#378ADD'},{pct:'6%',label:'Non-union on-the-job',note:'Some start as helpers and work toward licensure through non-union contractors',color:'#888780'}],
-    fieldAlignment: 89, fieldAlignmentNote: 'of electricians work directly in electrical installation or maintenance',
-    aiRisk: 'low', aiTitle: 'Very low automation risk. Hands-on and licensed.',
-    aiBody: 'Electrical work requires physical presence, on-site problem-solving, and licensed accountability that cannot be automated. Demand is growing due to EV infrastructure, solar installation, and smart building upgrades.',
-    salaryChart: {entry:41,median:62,top:98}
-  },
-  {
-    key: 'firefighter',
-    name: 'Firefighter', type: 'both', typeLabel: 'Certification + some degrees',
-    searchTerms: ['firefighter','firefighters','fireman','firewoman','fire fighter','fire department','fire rescue','wildland firefighter','forest firefighter','fire captain','fire lieutenant'],
-    desc: 'Firefighters respond to fires, accidents, and medical emergencies. The role requires physical fitness, teamwork, and split-second decision-making. Most positions are government-employed with strong benefits.',
-    workers: '327,000', growth: '+4%', growthNote: 'projected 2022-32',
-    salaryEntry: '$35,000', salaryMedian: '$56,310', salaryTop: '$96,000',
-    paths: [{pct:'55%',label:'Fire academy + EMT certification',note:'Most departments require completion of a fire academy and EMT-Basic certification',color:'#D85A30'},{pct:'30%',label:"Associate's or bachelor's degree",note:"Increasingly common as departments grow more competitive. Fire science degrees help.",color:'#185FA5'},{pct:'15%',label:'Military background',note:'Veterans often receive preference in hiring',color:'#7F77DD'}],
-    fieldAlignment: 88, fieldAlignmentNote: 'of trained firefighters work in fire or emergency services',
-    aiRisk: 'low', aiTitle: 'Very low automation risk. Emergency response is irreplaceable.',
-    aiBody: 'Firefighting requires physical presence, real-time situational judgment, and community trust. AI may assist with dispatch or predictive modeling but cannot replace responders on scene.',
-    salaryChart: {entry:35,median:56,top:96}
-  },
-  {
-    key: 'plumber',
-    name: 'Plumber', type: 'trade', typeLabel: 'Trade / apprenticeship',
-    searchTerms: ['plumber','plumbers','plumbing','pipefitter','pipefitters','steamfitter','plumbing contractor','journeyman plumber','master plumber','pipe layer'],
-    desc: 'Plumbers install and repair water, gas, and drainage systems. Consistently high demand, strong wages, and virtually zero offshore or automation risk.',
-    workers: '480,600', growth: '+11%', growthNote: 'projected 2022-32, faster than average',
-    salaryEntry: '$40,000', salaryMedian: '$61,550', salaryTop: '$100,000',
-    paths: [{pct:'75%',label:'Apprenticeship (UA)',note:'4-5 year union apprenticeships through the United Association',color:'#1D9E75'},{pct:'18%',label:'Trade school',note:'Vocational programs covering pipefitting, blueprints, and code compliance',color:'#378ADD'},{pct:'7%',label:'Helper-to-journeyman',note:'Some start as unlicensed helpers and work toward licensure independently',color:'#888780'}],
-    fieldAlignment: 88, fieldAlignmentNote: 'of plumbing apprentices work in plumbing or closely related roles',
-    aiRisk: 'low', aiTitle: 'Very low automation risk. Physically irreplaceable.',
-    aiBody: 'Plumbing work requires navigating existing structures, improvising in tight spaces, and making real-time code decisions. Impossible to automate at any near-term horizon.',
-    salaryChart: {entry:40,median:62,top:100}
-  },
-  {
-    key: 'hvac technician',
-    name: 'HVAC Technician', type: 'trade', typeLabel: 'Trade / certification',
-    searchTerms: ['hvac technician','hvac tech','hvac','air conditioning technician','ac technician','heating and cooling','refrigeration technician','hvac installer','hvac service tech'],
-    desc: 'HVAC technicians install, maintain, and repair heating, ventilation, air conditioning, and refrigeration systems. Growing demand driven by climate and energy efficiency mandates.',
-    workers: '394,800', growth: '+6%', growthNote: 'projected 2022-32',
-    salaryEntry: '$38,000', salaryMedian: '$57,300', salaryTop: '$87,000',
-    paths: [{pct:'65%',label:'Trade school / vocational program',note:'6-month to 2-year programs covering refrigerants, electrical systems, and EPA 608 certification',color:'#1D9E75'},{pct:'28%',label:'Apprenticeship',note:'Union and non-union apprenticeships (3-5 years) provide the most comprehensive training',color:'#378ADD'},{pct:'7%',label:'Military or on-the-job',note:'Some enter from military HVAC training or are trained directly by employers',color:'#888780'}],
-    fieldAlignment: 82, fieldAlignmentNote: 'of HVAC graduates work in HVAC or closely related mechanical systems roles',
-    aiRisk: 'low', aiTitle: 'Low automation risk. High physical complexity.',
-    aiBody: 'HVAC work involves diagnosing failures in complex, variable environments. Growing demand for energy-efficient systems and heat pump installation is actually expanding the field.',
-    salaryChart: {entry:38,median:57,top:87}
-  },
-  {
-    key: 'teacher',
-    name: 'Teacher (K-12)', type: 'college', typeLabel: 'College degree + certification',
-    searchTerms: ['teacher','teachers','teaching','educator','school teacher','high school teacher','elementary teacher','middle school teacher','classroom teacher','kindergarten teacher','special education teacher','substitute teacher','tutor'],
-    desc: 'K-12 teachers educate children in public and private schools. One of the largest workforces in the US, with strong licensing requirements and significant regional salary variation.',
-    workers: '3,534,000', growth: '+1%', growthNote: 'projected 2022-32, roughly stable',
-    salaryEntry: '$40,000', salaryMedian: '$61,820', salaryTop: '$98,000',
-    paths: [{pct:'91%',label:"Bachelor's degree in education",note:"State licensure requires a bachelor's degree plus student teaching",color:'#185FA5'},{pct:'7%',label:'Alternative certification',note:'Accelerated pathways for career changers',color:'#7F77DD'},{pct:'2%',label:'Private school (no cert required)',note:'Some private schools hire subject matter experts without state certification',color:'#888780'}],
-    fieldAlignment: 79, fieldAlignmentNote: 'of education graduates work in educational roles',
-    aiRisk: 'low', aiTitle: 'Low displacement risk. Human presence is the job.',
-    aiBody: 'Teaching involves relationship-building, behavior management, and social-emotional development that AI cannot replicate. AI tutoring tools will assist teachers, not replace them.',
-    salaryChart: {entry:40,median:62,top:98}
-  },
-  {
-    key: 'lawyer',
-    name: 'Lawyer', type: 'college', typeLabel: 'Law degree (JD) required',
-    searchTerms: ['lawyer','attorney','attorneys','lawyer','solicitor','public defender','corporate lawyer','trial lawyer','litigation attorney','immigration lawyer','criminal defense lawyer','family lawyer','real estate lawyer','patent lawyer','attorney at law','esquire','barrister','legal counsel','in-house counsel','counsel'],
-    desc: 'Lawyers advise clients on legal matters, represent them in court, and draft legal documents. A high-investment, high-return career path that requires at least 7 years of post-secondary education.',
-    workers: '813,900', growth: '+8%', growthNote: 'projected 2022-32, faster than average',
-    salaryEntry: '$70,000', salaryMedian: '$145,760', salaryTop: '$239,000',
-    paths: [{pct:'100%',label:'Law degree (JD) required',note:"All practicing lawyers must hold a Juris Doctor degree from an accredited law school and pass the bar exam",color:'#185FA5'}],
-    fieldAlignment: 76, fieldAlignmentNote: 'of law graduates practice law or work in law-adjacent roles',
-    aiRisk: 'medium', aiTitle: 'Selective automation risk. Research and drafting most exposed.',
-    aiBody: 'AI tools are automating legal research, document review, and contract drafting at speed. Courtroom advocacy, client counseling, and complex litigation strategy remain deeply human.',
-    salaryChart: {entry:70,median:146,top:239}
-  },
-  {
-    key: 'physical therapist',
-    name: 'Physical Therapist', type: 'college', typeLabel: 'Doctoral degree (DPT) required',
-    searchTerms: ['physical therapist','pt','physical therapy','physiotherapist','physiotherapy','sports physical therapist','orthopedic physical therapist','pediatric physical therapist'],
-    desc: 'Physical therapists help patients recover from injuries, surgeries, and chronic conditions through exercise, manual therapy, and education. Consistently high demand and strong job security.',
-    workers: '247,700', growth: '+15%', growthNote: 'projected 2022-32, much faster than average',
-    salaryEntry: '$65,000', salaryMedian: '$99,710', salaryTop: '$128,000',
-    paths: [{pct:'100%',label:'Doctor of Physical Therapy (DPT)',note:"All physical therapists must earn a 3-year DPT degree and pass licensing exams. Typically 7 years total post-secondary.",color:'#185FA5'}],
-    fieldAlignment: 91, fieldAlignmentNote: 'of DPT graduates work in physical therapy or closely related rehabilitation roles',
-    aiRisk: 'low', aiTitle: 'Low automation risk. Hands-on therapeutic care is irreplaceable.',
-    aiBody: 'Physical therapy requires tactile assessment, patient motivation, and adaptive treatment planning. AI may assist with exercise tracking but cannot replace hands-on care.',
-    salaryChart: {entry:65,median:100,top:128}
-  },
-  {
-    key: 'paramedic',
-    name: 'Paramedic / EMT', type: 'both', typeLabel: 'Certification + some degrees',
-    searchTerms: ['paramedic','emt','emergency medical technician','first responder','ambulance','ambulance driver','emergency responder','medic','flight paramedic','critical care paramedic','ems','emergency medical services'],
-    desc: 'EMTs and paramedics respond to emergency medical calls and provide pre-hospital care. Paramedics have more advanced training and can administer medications and perform more complex procedures.',
-    workers: '275,800', growth: '+5%', growthNote: 'projected 2022-32',
-    salaryEntry: '$30,000', salaryMedian: '$46,770', salaryTop: '$72,000',
-    paths: [{pct:'60%',label:'EMT-Basic + Paramedic program',note:'EMT-Basic takes 3-6 months. Paramedic training adds 1-2 more years of coursework and clinical hours.',color:'#D85A30'},{pct:'30%',label:"Associate's degree (Emergency Medical Services)",note:'Some colleges offer 2-year EMS programs combining EMT-Basic and Paramedic training',color:'#185FA5'},{pct:'10%',label:'Fire department or military training',note:'Many enter through fire departments or military medic training',color:'#7F77DD'}],
-    fieldAlignment: 85, fieldAlignmentNote: 'of certified paramedics work in emergency medical services or closely related roles',
-    aiRisk: 'low', aiTitle: 'Very low automation risk. Emergency response cannot be automated.',
-    aiBody: 'Paramedic work happens in uncontrolled, rapidly changing environments requiring split-second human judgment. AI may assist with dispatch routing and diagnostic support but cannot replace field responders.',
-    salaryChart: {entry:30,median:47,top:72}
-  },
-  {
-    key: 'police officer',
-    name: 'Police Officer', type: 'both', typeLabel: 'Academy + some degrees',
-    searchTerms: ['police officer','cop','policeman','policewoman','police','law enforcement','sheriff','detective','state trooper','highway patrol','corrections officer','deputy sheriff','police detective','criminal investigator'],
-    desc: 'Police officers protect communities, respond to emergencies, enforce laws, and investigate crimes. Most departments require completion of a police academy. College degrees are increasingly preferred.',
-    workers: '666,000', growth: '+3%', growthNote: 'projected 2022-32',
-    salaryEntry: '$38,000', salaryMedian: '$70,010', salaryTop: '$112,000',
-    paths: [{pct:'65%',label:'Police academy (no degree required)',note:'Most departments require only a high school diploma plus successful completion of a police academy (16-24 weeks)',color:'#D85A30'},{pct:'30%',label:"Associate's or bachelor's degree",note:"Increasingly required or preferred, especially at federal and larger municipal departments",color:'#185FA5'},{pct:'5%',label:'Military background',note:'Veterans often receive hiring preference and may have requirements waived',color:'#7F77DD'}],
-    fieldAlignment: 82, fieldAlignmentNote: 'of law enforcement graduates work in policing or closely related public safety roles',
-    aiRisk: 'low', aiTitle: 'Low automation risk. Community presence and judgment are irreplaceable.',
-    aiBody: 'Law enforcement requires community relationships, situational ethics, and physical response. AI assists with surveillance analysis and report writing but cannot replace patrol officers.',
-    salaryChart: {entry:38,median:70,top:112}
-  },
-  {
-    key: 'automotive mechanic',
-    name: 'Automotive Technician', type: 'trade', typeLabel: 'Trade / certification',
-    searchTerms: ['automotive mechanic','mechanic','auto mechanic','car mechanic','auto technician','car technician','automotive technician','ev mechanic','diesel mechanic','diesel technician','transmission technician','body shop technician','collision repair','auto body'],
-    desc: 'Auto technicians diagnose and repair vehicles. The field is evolving rapidly with electric vehicles, requiring technicians to update their skills in high-voltage systems and software diagnostics.',
-    workers: '728,800', growth: '+2%', growthNote: 'projected 2022-32',
-    salaryEntry: '$32,000', salaryMedian: '$46,990', salaryTop: '$75,000',
-    paths: [{pct:'55%',label:'Vocational program / trade school',note:'6-month to 2-year programs in automotive technology. ASE certification is the industry standard.',color:'#1D9E75'},{pct:'30%',label:'Employer-sponsored training',note:'Many dealerships and chains train technicians on the job and sponsor ASE certification exams',color:'#378ADD'},{pct:'15%',label:"Associate's degree (automotive technology)",note:'Community college programs provide both theory and hands-on training',color:'#185FA5'}],
-    fieldAlignment: 78, fieldAlignmentNote: 'of automotive technology graduates work in vehicle service or closely related roles',
-    aiRisk: 'low', aiTitle: 'Low automation risk. EV transition is creating new demand.',
-    aiBody: 'The EV transition is creating immediate new demand for technicians trained in high-voltage systems. Software diagnostics are growing in importance. Physical repair and diagnosis remain human work.',
-    salaryChart: {entry:32,median:47,top:75}
-  },
-  {
-    key: 'physician',
-    name: 'Physician / Doctor', type: 'college', typeLabel: 'Medical degree (MD/DO) required',
-    searchTerms: ['physician','doctor','surgeon','md','medical doctor','general practitioner','gp','family doctor','family physician','internal medicine doctor','pediatrician','psychiatrist','cardiologist','dermatologist','oncologist','radiologist','emergency physician','er doctor','hospitalist'],
-    desc: 'Physicians diagnose and treat illness and injury. One of the most demanding educational paths, requiring 4 years of medical school plus 3-7 years of residency. Also one of the highest-paying careers.',
-    workers: '756,800', growth: '+3%', growthNote: 'projected 2022-32',
-    salaryEntry: '$120,000', salaryMedian: '$229,300', salaryTop: '$400,000',
-    paths: [{pct:'100%',label:'MD or DO degree required',note:"4 years of medical school following a bachelor's degree, then 3-7 years of residency. Total post-secondary: 11-15 years.",color:'#185FA5'}],
-    fieldAlignment: 95, fieldAlignmentNote: 'of medical school graduates practice medicine or work in directly related clinical roles',
-    aiRisk: 'low', aiTitle: 'Low replacement risk, but AI is changing the job significantly.',
-    aiBody: 'AI diagnostic tools are becoming powerful partners in radiology, pathology, and primary care. Physicians who embrace AI augmentation will be more effective. Clinical judgment and patient relationships remain irreplaceable.',
-    salaryChart: {entry:120,median:229,top:400}
-  },
-  {
-    key: 'web developer',
-    name: 'Web Developer', type: 'both', typeLabel: 'Degree or self-taught',
-    searchTerms: ['web developer','web dev','frontend developer','front end developer','frontend engineer','front end engineer','web designer','ui developer','wordpress developer','shopify developer','react developer','javascript developer','web programmer'],
-    desc: 'Web developers build and maintain websites and web applications. The barrier to entry is lower than software engineering, but the field is also experiencing significant AI-driven change.',
-    workers: '199,400', growth: '+16%', growthNote: 'projected 2022-32, much faster than average',
-    salaryEntry: '$48,000', salaryMedian: '$92,750', salaryTop: '$150,000',
-    paths: [{pct:'45%',label:"Bachelor's degree (CS or web design)",note:'4-year degrees in computer science, information systems, or digital media',color:'#185FA5'},{pct:'35%',label:'Bootcamp or certificate program',note:'3-6 month intensive programs. Portfolio matters more than credential.',color:'#1D9E75'},{pct:'20%',label:'Self-taught',note:'A significant portion of working developers are self-taught, relying on portfolio and open-source contributions',color:'#7F77DD'}],
-    fieldAlignment: 58, fieldAlignmentNote: 'of web development graduates work in web or closely related digital roles',
-    aiRisk: 'high', aiTitle: 'High disruption risk for entry-level roles.',
-    aiBody: 'AI coding assistants are automating significant portions of front-end development. Developers who specialize in architecture, UX engineering, or full-stack with strong product sense are better positioned.',
-    salaryChart: {entry:48,median:93,top:150}
-  },
-  {
-    key: 'ux designer',
-    name: 'UX / Product Designer', type: 'both', typeLabel: 'Degree or portfolio-based',
-    searchTerms: ['ux designer','ux design','user experience designer','product designer','ui ux designer','ui/ux designer','ui designer','interaction designer','user interface designer','ux researcher','design researcher','service designer','ux engineer'],
-    desc: 'UX and product designers research user needs and design digital products that are intuitive and effective. One of the fastest-growing creative roles, sitting at the intersection of design, psychology, and technology.',
-    workers: '204,000', growth: '+16%', growthNote: 'projected 2022-32',
-    salaryEntry: '$58,000', salaryMedian: '$98,000', salaryTop: '$150,000',
-    paths: [{pct:'50%',label:"Bachelor's degree (design, HCI, psychology)",note:"Many paths in: graphic design, cognitive science, computer science, or human-computer interaction",color:'#185FA5'},{pct:'35%',label:'UX bootcamp or certificate',note:'Google UX Design Certificate, General Assembly, and similar programs. Portfolio is everything.',color:'#1D9E75'},{pct:'15%',label:'Self-taught / transitioned from adjacent role',note:'Many UX designers transition from graphic design, front-end development, or psychology',color:'#7F77DD'}],
-    fieldAlignment: 62, fieldAlignmentNote: 'of design graduates work in UX or closely related product design roles',
-    aiRisk: 'medium', aiTitle: 'Moderate risk. Research and strategy are safer than execution.',
-    aiBody: 'AI tools are automating wireframing, prototyping, and some usability testing tasks. UX researchers, design strategists, and designers who work closely with engineering are well protected. Junior visual execution roles face more pressure.',
-    salaryChart: {entry:58,median:98,top:150}
-  },
-  {
-    key: 'graphic designer',
-    name: 'Graphic Designer', type: 'both', typeLabel: 'Degree or portfolio-based',
-    searchTerms: ['graphic designer','graphic design','logo designer','visual designer','brand designer','print designer','identity designer','packaging designer','illustration','illustrator','art director','creative director'],
-    desc: 'Graphic designers create visual content for brands, publications, digital media, and advertising. The field is undergoing significant disruption from AI image generation tools.',
-    workers: '281,400', growth: '-3%', growthNote: 'projected 2022-32, slight decline',
-    salaryEntry: '$36,000', salaryMedian: '$57,990', salaryTop: '$94,000',
-    paths: [{pct:'52%',label:"Bachelor's degree (design/art)",note:'4-year programs in graphic design, visual communication, or fine arts',color:'#185FA5'},{pct:'31%',label:'Associate degree / certificate',note:'2-year programs or design certificates increasingly accepted',color:'#7F77DD'},{pct:'17%',label:'Self-taught / portfolio',note:'A growing share enter with no formal degree. Portfolio and tools proficiency matter most.',color:'#1D9E75'}],
-    fieldAlignment: 28, fieldAlignmentNote: 'of art and design graduates work in direct design roles',
-    aiRisk: 'high', aiTitle: 'High disruption risk. Human direction still matters.',
-    aiBody: 'AI tools are automating production-level design tasks rapidly. Designers who specialize in UX, brand strategy, and creative direction and who master AI tools are repositioning successfully.',
-    salaryChart: {entry:36,median:58,top:94}
-  },
-  {
-    key: 'dental hygienist',
-    name: 'Dental Hygienist', type: 'college', typeLabel: "Associate's degree required",
-    searchTerms: ['dental hygienist','dental hygiene','dental assistant','dentist assistant','oral hygienist','teeth cleaning','dental care'],
-    desc: 'Dental hygienists clean teeth, examine patients for oral diseases, and provide preventive care. A stable healthcare career with relatively short educational requirements and strong earnings.',
-    workers: '212,600', growth: '+9%', growthNote: 'projected 2022-32, faster than average',
-    salaryEntry: '$55,000', salaryMedian: '$81,400', salaryTop: '$107,000',
-    paths: [{pct:'85%',label:"Associate's degree in dental hygiene",note:"Accredited 2-3 year programs. State licensure required after graduation.",color:'#185FA5'},{pct:'15%',label:"Bachelor's degree",note:"Some states and career paths prefer or require a bachelor's degree",color:'#7F77DD'}],
-    fieldAlignment: 88, fieldAlignmentNote: 'of dental hygiene graduates work in dental offices or closely related oral health roles',
-    aiRisk: 'low', aiTitle: 'Low automation risk. Hands-on patient care drives the role.',
-    aiBody: 'Dental hygiene requires physical dexterity, patient communication, and real-time assessment. AI may assist with X-ray analysis and scheduling but cannot replace chairside care.',
-    salaryChart: {entry:55,median:81,top:107}
-  },
-  {
-    key: 'accountant',
-    name: 'Accountant / CPA', type: 'college', typeLabel: 'College degree required',
-    searchTerms: ['accountant','accounting','cpa','certified public accountant','bookkeeper','auditor','tax accountant','forensic accountant','financial accountant','management accountant','tax preparer','cma','controller','staff accountant'],
-    desc: 'Accountants prepare and examine financial records, ensure accuracy, and help organizations manage their finances. CPA licensure opens significantly higher-earning opportunities.',
-    workers: '1,424,000', growth: '+4%', growthNote: 'projected 2022-32',
-    salaryEntry: '$47,000', salaryMedian: '$79,880', salaryTop: '$128,000',
-    paths: [{pct:'80%',label:"Bachelor's degree (accounting/finance)",note:"Required for CPA licensure in most states.",color:'#185FA5'},{pct:'15%',label:"Master's degree (MAcc or MBA)",note:'Increasingly preferred at large firms',color:'#7F77DD'},{pct:'5%',label:'Related degree + certification',note:'Some accountants hold degrees in other business fields and earn CPA or CMA credentials separately',color:'#888780'}],
-    fieldAlignment: 62, fieldAlignmentNote: 'of accounting graduates work in accounting or closely related financial roles',
-    aiRisk: 'high', aiTitle: 'High disruption risk for routine accounting. Advisory roles are safer.',
-    aiBody: 'AI tools are automating bookkeeping, tax preparation, data entry, and basic audit tasks rapidly. CPAs who specialize in advisory services, forensic accounting, and financial strategy face much lower displacement risk.',
-    salaryChart: {entry:47,median:80,top:128}
-  },
-  {
-    key: 'anesthesiologist',
-    name: 'Anesthesiologist', type: 'college', typeLabel: 'Medical degree (MD/DO) required',
-    searchTerms: ['anesthesiologist','anesthesiology','anesthetist','crna','certified registered nurse anesthetist','anesthesia','anesthesiologist assistant'],
-    desc: 'Anesthesiologists administer anesthesia and monitor patients during surgical procedures. One of the highest-paying medical specialties, requiring one of the longest training paths.',
-    workers: '35,800', growth: '+3%', growthNote: 'projected 2022-32',
-    salaryEntry: '$200,000', salaryMedian: '$331,190', salaryTop: '$450,000',
-    paths: [{pct:'100%',label:'MD/DO + 4-year anesthesiology residency',note:'4 years of college, 4 years of medical school, 1 year of internship, 3-4 years of residency. Total: 12-13 years.',color:'#185FA5'}],
-    fieldAlignment: 98, fieldAlignmentNote: 'of trained anesthesiologists practice anesthesiology or closely related perioperative medicine',
-    aiRisk: 'low', aiTitle: 'Low replacement risk despite high AI activity in monitoring.',
-    aiBody: 'AI and automation are being developed for anesthesia monitoring and dosage, but physician oversight and real-time response to complications remain essential.',
-    salaryChart: {entry:200,median:331,top:450}
-  },
-  {
-    key: 'marketing manager',
-    name: 'Marketing Manager', type: 'college', typeLabel: 'College degree preferred',
-    searchTerms: ['marketing manager','marketing director','brand manager','digital marketing manager','growth marketer','marketing strategist','content strategist','marketing coordinator','social media manager','community manager','email marketer','performance marketer','growth hacker','marketing analyst'],
-    desc: 'Marketing managers develop strategies to promote products and services, manage campaigns, and oversee teams. A field in transition as AI automates content creation, analytics, and targeting.',
-    workers: '361,200', growth: '+6%', growthNote: 'projected 2022-32',
-    salaryEntry: '$62,000', salaryMedian: '$140,040', salaryTop: '$208,000',
-    paths: [{pct:'71%',label:"Bachelor's degree (marketing/business)",note:'Marketing, communications, or business degrees are the standard entry path',color:'#185FA5'},{pct:'21%',label:'Related degree + experience',note:'Psychology, English, or other degrees common when paired with strong portfolio',color:'#7F77DD'},{pct:'8%',label:'No degree / rose through ranks',note:'A smaller share work up from coordinator or specialist roles without formal degrees',color:'#888780'}],
-    fieldAlignment: 38, fieldAlignmentNote: 'of marketing graduates work in marketing management roles',
-    aiRisk: 'medium', aiTitle: 'Mixed risk. Strategic roles safer, execution roles exposed.',
-    aiBody: 'AI tools are automating content writing, A/B testing, and ad targeting. Managers who understand strategy, brand positioning, and cross-functional leadership remain essential.',
-    salaryChart: {entry:62,median:140,top:208}
-  },
-  {
-    key: 'construction manager',
-    name: 'Construction Manager', type: 'both', typeLabel: 'Degree or trade experience',
-    searchTerms: ['construction manager','general contractor','project manager construction','site supervisor','construction superintendent','building contractor','construction foreman','construction supervisor','project superintendent'],
-    desc: 'Construction managers plan, coordinate, and supervise construction projects from groundbreaking to completion. A role that combines technical knowledge with project management and leadership.',
-    workers: '480,000', growth: '+8%', growthNote: 'projected 2022-32, faster than average',
-    salaryEntry: '$62,000', salaryMedian: '$104,900', salaryTop: '$169,000',
-    paths: [{pct:'55%',label:"Bachelor's degree (construction management, civil engineering)",note:'4-year programs. Many universities offer dedicated construction management degrees.',color:'#185FA5'},{pct:'35%',label:'Trade experience + promotion',note:'Many construction managers work their way up from trade roles over 10-15 years',color:'#1D9E75'},{pct:'10%',label:'Associate degree + certification',note:'Some enter through associate degrees and earn PMP or CCM credentials',color:'#7F77DD'}],
-    fieldAlignment: 71, fieldAlignmentNote: 'of construction management graduates work in construction or closely related project management roles',
-    aiRisk: 'low', aiTitle: 'Low automation risk. Site management is deeply human.',
-    aiBody: 'Construction management involves real-time problem solving across unpredictable environments. AI assists with scheduling and cost estimation but cannot replace on-site leadership and trade knowledge.',
-    salaryChart: {entry:62,median:105,top:169}
-  },
-  {
-    key: 'data scientist',
-    name: 'Data Scientist', type: 'college', typeLabel: 'Degree required, usually graduate',
-    searchTerms: ['data scientist','data science','machine learning engineer','ml engineer','data analyst','business analyst','data engineer','analytics engineer','quantitative analyst','quant analyst','statistician','research scientist','ai researcher','ai engineer'],
-    desc: 'Data scientists collect, analyze, and interpret large datasets to help organizations make better decisions. One of the highest-demand technical roles of the past decade, now evolving rapidly with generative AI.',
-    workers: '168,900', growth: '+35%', growthNote: 'projected 2022-32, much faster than average',
-    salaryEntry: '$75,000', salaryMedian: '$108,020', salaryTop: '$185,000',
-    paths: [{pct:'60%',label:"Master's or PhD (statistics, CS, data science)",note:'Graduate degrees are strongly preferred for senior and research roles',color:'#185FA5'},{pct:'30%',label:"Bachelor's degree + bootcamp or self-study",note:'Strong math/CS undergraduate plus portfolio of projects',color:'#1D9E75'},{pct:'10%',label:'Industry certification + portfolio',note:'Google, Coursera, and other platforms offer credentialing paths. Portfolio matters most.',color:'#7F77DD'}],
-    fieldAlignment: 68, fieldAlignmentNote: 'of data science graduates work in data or closely related analytics and ML roles',
-    aiRisk: 'medium', aiTitle: 'Nuanced risk. AI is both a tool and a threat in this field.',
-    aiBody: 'Generative AI is automating routine data cleaning, reporting, and basic modeling. But data scientists who define the right problems, interpret results, and translate insights for business stakeholders remain in high demand.',
-    salaryChart: {entry:75,median:108,top:185}
-  },
-  {
-    key: 'carpenter',
-    name: 'Carpenter', type: 'trade', typeLabel: 'Trade / apprenticeship',
-    searchTerms: ['carpenter','carpentry','cabinet maker','cabinetmaker','finish carpenter','framing carpenter','trim carpenter','woodworker','furniture maker','custom woodworking','joiner'],
-    desc: 'Carpenters construct, install, and repair structures and fixtures made of wood and other materials. From framing new homes to crafting custom furniture, the work ranges from rough construction to fine finishing.',
-    workers: '888,600', growth: '+2%', growthNote: 'projected 2022-32',
-    salaryEntry: '$36,000', salaryMedian: '$56,590', salaryTop: '$90,000',
-    paths: [{pct:'65%',label:'Apprenticeship (UBC)',note:'United Brotherhood of Carpenters apprenticeships: 4 years of paid on-the-job training plus classroom hours',color:'#1D9E75'},{pct:'25%',label:'Vocational school / trade program',note:'Community college or vocational school programs in construction or carpentry',color:'#378ADD'},{pct:'10%',label:'On-the-job training',note:'Some carpenters start as helpers with contractors and learn through experience',color:'#888780'}],
-    fieldAlignment: 82, fieldAlignmentNote: 'of carpentry graduates work in construction or closely related building trades',
-    aiRisk: 'low', aiTitle: 'Low automation risk. Skilled craft work is hard to automate.',
-    aiBody: 'Carpentry requires physical dexterity, spatial reasoning, and adaptation to unique job sites and materials. Custom and finish carpentry work is especially resistant to automation.',
-    salaryChart: {entry:36,median:57,top:90}
-  },
-  {
-    key: 'drone operator',
-    name: 'Drone Pilot / UAV Operator', type: 'both', typeLabel: 'FAA certification required',
-    searchTerms: ['drone operator','drone pilot','uav operator','uav pilot','uas operator','drone technician','aerial photographer','drone photographer','drone surveyor','precision ag drone','agricultural drone','drone inspector','remote pilot'],
-    desc: 'Drone pilots operate unmanned aerial vehicles for photography, surveying, agriculture, inspection, and delivery. One of the fastest-growing emerging occupations with applications across many industries.',
-    workers: '50,000', growth: '+40%', growthNote: 'projected 2022-32, one of the fastest-growing emerging roles',
-    salaryEntry: '$40,000', salaryMedian: '$68,000', salaryTop: '$115,000',
-    paths: [{pct:'55%',label:'FAA Part 107 certification',note:"The FAA's Remote Pilot Certificate is required for commercial drone operations. Study time: 2-4 weeks. Exam fee: $175.",color:'#1D9E75'},{pct:'30%',label:'Specialized industry training',note:'Many drone pilots combine the FAA cert with industry-specific training in surveying, inspection, agriculture, or cinematography',color:'#378ADD'},{pct:'15%',label:'Military background',note:'Military UAV operators are increasingly entering civilian drone roles with significant experience',color:'#185FA5'}],
-    fieldAlignment: 72, fieldAlignmentNote: 'of drone pilots work in commercial UAV operations or closely related aerial services',
-    aiRisk: 'medium', aiTitle: 'Moderate long-term risk. Autonomy is developing but slowly.',
-    aiBody: 'Fully autonomous drones are coming but face significant regulatory and technical hurdles. Complex operations in dynamic environments (precision ag, inspection, emergency response) will require human pilots for the foreseeable future.',
-    salaryChart: {entry:40,median:68,top:115}
-  },
-  {
-    key: 'solar installer',
-    name: 'Solar Panel Installer', type: 'trade', typeLabel: 'Trade / certification',
-    searchTerms: ['solar installer','solar panel installer','solar technician','solar tech','photovoltaic installer','pv installer','solar contractor','solar electrician','renewable energy technician','wind turbine technician','clean energy technician'],
-    desc: 'Solar installers assemble, install, and maintain solar panel systems on rooftops and ground-mounted arrays. One of the fastest-growing trade occupations, driven by the clean energy transition.',
-    workers: '279,000', growth: '+52%', growthNote: 'projected 2022-32, one of the fastest-growing trades',
-    salaryEntry: '$36,000', salaryMedian: '$47,670', salaryTop: '$72,000',
-    paths: [{pct:'55%',label:'On-the-job training + NABCEP certification',note:'Most solar installers learn through employer training and earn NABCEP PV Installation Professional certification',color:'#1D9E75'},{pct:'30%',label:'Vocational / trade school',note:'Some community colleges offer solar energy technology programs (6 months to 2 years)',color:'#378ADD'},{pct:'15%',label:'Electrical apprenticeship + solar specialization',note:'Electricians frequently transition into solar installation and command higher wages',color:'#185FA5'}],
-    fieldAlignment: 80, fieldAlignmentNote: 'of solar installer graduates work in solar or closely related renewable energy roles',
-    aiRisk: 'low', aiTitle: 'Very low automation risk. Physical installation requires humans.',
-    aiBody: 'Solar installation requires rooftop work, physical assembly, and on-site electrical connections that robots cannot reliably perform at scale. Demand is growing rapidly with no automation slowdown in sight.',
-    salaryChart: {entry:36,median:48,top:72}
-  },
-  {
-    key: 'massage therapist',
-    name: 'Massage Therapist', type: 'trade', typeLabel: 'License / certification',
-    searchTerms: ['massage therapist','massage therapy','masseuse','masseur','licensed massage therapist','lmt','therapeutic massage','sports massage therapist','deep tissue massage','myofascial therapist'],
-    desc: 'Massage therapists manipulate soft tissues to relieve pain, reduce stress, and improve overall wellness. State licensing requirements vary but typically involve 500-1,000 hours of training.',
-    workers: '160,000', growth: '+18%', growthNote: 'projected 2022-32, much faster than average',
-    salaryEntry: '$28,000', salaryMedian: '$49,860', salaryTop: '$82,000',
-    paths: [{pct:'90%',label:'Massage therapy school (500-1,000 hours)',note:'Accredited programs range from 6 months to 1 year. State licensure required in most states.',color:'#1D9E75'},{pct:'10%',label:'Apprenticeship or employer training',note:'Some spas and wellness centers train massage therapists directly',color:'#378ADD'}],
-    fieldAlignment: 75, fieldAlignmentNote: 'of licensed massage therapists work in massage therapy or closely related wellness roles',
-    aiRisk: 'low', aiTitle: 'Very low automation risk. Touch-based therapy cannot be automated.',
-    aiBody: 'Massage therapy is inherently human. Physical touch, intuitive pressure adjustment, and therapeutic presence are irreplaceable. Growing wellness industry demand is expanding the field.',
-    salaryChart: {entry:28,median:50,top:82}
-  }
+const LOADING_MSGS = [
+  ['Pulling salary data...', 'BLS Occupational Employment Statistics'],
+  ['Checking job outlook...', 'Projected growth and employment trends'],
+  ['Analyzing AI risk...', 'Cross-referencing Brookings and O*NET data'],
+  ['Mapping entry paths...', 'Education and training requirements'],
+  ['Calculating displacement...', 'Landors Curve index for this career'],
 ];
 
-// ─── NOISE WORDS TO STRIP ────────────────────────────────────────────────────
-const NOISE_PHRASES = [
-  'how much does a','how much does an','how much does','how much do','how much can a','how much can',
-  'what does a','what does an','what does','what do','what is a','what is an','what is','what are',
-  'how do i become a','how do i become an','how do i become','how to become a','how to become an','how to become',
-  'salary for a','salary for an','salary for','salary of a','salary of','pay for a','pay for',
-  'income for a','income for','wages for a','wages for',
-  'how much','make a year','make per year','make annually','make yearly',
-  'earn a year','earn per year','earn annually','earn yearly','get paid',
-  ' make',' earn',' salary',' pay',' income',' wage',' wages',
-  ' average',' yearly',' annually',' annual'
-];
+let loadingInterval;
 
-function cleanQuery(raw) {
-  let q = raw.toLowerCase().trim();
-  const sorted = [...NOISE_PHRASES].sort((a,b) => b.length - a.length);
-  for (const phrase of sorted) {
-    q = q.replace(new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'g'), ' ');
-  }
-  // Strip leading articles only at the start
-  q = q.replace(/^(a |an |the )/, '');
-  return q.replace(/\s+/g,' ').trim();
+function startLoading() {
+  document.getElementById('loading-box').classList.add('show');
+  document.getElementById('error-box').classList.remove('show');
+  document.getElementById('results-panel').classList.remove('show');
+  document.getElementById('search-btn').disabled = true;
+  let i = 0;
+  loadingInterval = setInterval(() => {
+    if (i < LOADING_MSGS.length) {
+      document.getElementById('loading-title').textContent = LOADING_MSGS[i][0];
+      document.getElementById('loading-sub').textContent = LOADING_MSGS[i][1];
+      i++;
+    }
+  }, 1400);
 }
 
-// ─── SEARCH LOGIC ─────────────────────────────────────────────────────────────
-// Priority order:
-// 1. Exact match in searchTerms
-// 2. searchTerms starts-with match
-// 3. searchTerms contains match
-// 4. Career key exact match
-// 5. Fuzzy word match (last resort, single words only)
-
-function resolveCareer(raw) {
-  const cleaned = cleanQuery(raw);
-  if (!cleaned) return null;
-
-  // 1. Exact match in searchTerms
-  for (const career of CAREERS) {
-    if (career.searchTerms.includes(cleaned)) {
-      return { career, matched: cleaned };
-    }
-  }
-
-  // 2. searchTerms starts-with (e.g. "live sound" matches "live sound engineer")
-  for (const career of CAREERS) {
-    for (const term of career.searchTerms) {
-      if (term.startsWith(cleaned) && cleaned.length >= 4) {
-        return { career, matched: term };
-      }
-    }
-  }
-
-  // 3. Cleaned starts with a searchTerm (e.g. "firefighter captain" matches "firefighter")
-  for (const career of CAREERS) {
-    for (const term of career.searchTerms) {
-      if (cleaned.startsWith(term) && term.length >= 4) {
-        return { career, matched: term };
-      }
-    }
-  }
-
-  // 4. searchTerms contains cleaned (exact phrase within)
-  for (const career of CAREERS) {
-    for (const term of career.searchTerms) {
-      if (term.includes(cleaned) && cleaned.length >= 5) {
-        return { career, matched: term };
-      }
-    }
-  }
-
-  // 5. Single-word fuzzy match — only if cleaned is one word
-  const words = cleaned.split(' ').filter(w => w.length >= 4);
-  if (words.length === 1) {
-    const word = words[0];
-    for (const career of CAREERS) {
-      for (const term of career.searchTerms) {
-        if (term.includes(word) || word.includes(term.split(' ')[0])) {
-          return { career, matched: term };
-        }
-      }
-    }
-  }
-
-  return null;
+function stopLoading() {
+  clearInterval(loadingInterval);
+  document.getElementById('loading-box').classList.remove('show');
+  document.getElementById('search-btn').disabled = false;
 }
 
-function getRelatedCareers(raw) {
-  const cleaned = cleanQuery(raw);
-  const words = cleaned.split(' ').filter(w => w.length >= 3);
-  const found = [];
-  const seen = new Set();
-
-  for (const word of words) {
-    for (const career of CAREERS) {
-      if (seen.has(career.key)) continue;
-      for (const term of career.searchTerms) {
-        if (term.includes(word)) {
-          found.push(career);
-          seen.add(career.key);
-          break;
-        }
-      }
-    }
-  }
-
-  if (found.length === 0) {
-    return CAREERS.filter(c => ['firefighter','registered nurse','electrician','software engineer','lawyer','farmer'].includes(c.key));
-  }
-  return found.slice(0, 6);
+function showError(msg) {
+  const box = document.getElementById('error-box');
+  box.textContent = msg;
+  box.classList.add('show');
 }
 
-// ─── RENDER ──────────────────────────────────────────────────────────────────
 function aiColor(risk) {
-  return risk === 'low' ? '#1D9E75' : risk === 'medium' ? '#BA7517' : '#D85A30';
+  if (risk === 'low') return '#1D9E75';
+  if (risk === 'medium') return '#BA7517';
+  return '#D85A30';
 }
 
-function renderResult(career, searchedTerm) {
-  const d = career;
+function render(r) {
   const panel = document.getElementById('results-panel');
-  const growthColor = d.growth.startsWith('-') ? 'red' : (parseInt(d.growth) > 5 ? 'green' : 'blue');
-
-  // Only show alias note if what they searched is meaningfully different from the career name
-  const cleanedSearch = searchedTerm ? searchedTerm.toLowerCase().trim() : '';
-  const cleanedName = d.name.toLowerCase();
-  const showAlias = cleanedSearch && !cleanedName.includes(cleanedSearch) && !cleanedSearch.includes(cleanedName.split(' ')[0]);
-  const aliasNote = showAlias
-    ? `<div class="alias-note">Showing results for: ${d.name}</div>`
-    : '';
+  const growthColor = (r.jobGrowth || '').startsWith('-') ? 'red' : (parseInt(r.jobGrowth) > 5 ? 'green' : 'blue');
+  const alignColor = r.fieldAlignment >= 70 ? 'green' : r.fieldAlignment >= 40 ? 'amber' : 'red';
+  const riskClass = r.aiRisk || 'medium';
 
   panel.innerHTML = `
-    ${aliasNote}
     <div class="career-title-row">
-      <span class="career-name">${d.name}</span>
-      <span class="career-type ${d.type}">${d.typeLabel}</span>
+      <span class="career-name">${r.career || 'Career'}</span>
+      <span class="career-type ${r.pathType || 'both'}">${r.pathTypeLabel || ''}</span>
     </div>
-    <p class="career-desc">${d.desc}</p>
+    <p class="career-desc">${r.description || ''}</p>
+
     <div class="stat-grid">
-      <div class="sc"><p class="sl">US workers</p><p class="sv blue">${d.workers}</p><p class="sn">currently employed</p></div>
-      <div class="sc"><p class="sl">Job growth</p><p class="sv ${growthColor}">${d.growth}</p><p class="sn">${d.growthNote}</p></div>
-      <div class="sc"><p class="sl">Median salary</p><p class="sv green">${d.salaryMedian}</p><p class="sn">annually (BLS 2023)</p></div>
-      <div class="sc"><p class="sl">Field alignment</p><p class="sv ${d.fieldAlignment>=70?'green':d.fieldAlignment>=40?'amber':'red'}">${d.fieldAlignment}%</p><p class="sn">${d.fieldAlignmentNote}</p></div>
+      <div class="sc"><p class="sl">US workers</p><p class="sv blue">${r.usWorkers || 'N/A'}</p><p class="sn">currently employed</p></div>
+      <div class="sc"><p class="sl">Job growth</p><p class="sv ${growthColor}">${r.jobGrowth || 'N/A'}</p><p class="sn">${r.growthNote || ''}</p></div>
+      <div class="sc"><p class="sl">Median salary</p><p class="sv green">${r.salaryMedian || 'N/A'}</p><p class="sn">annually (BLS 2023)</p></div>
+      <div class="sc"><p class="sl">Field alignment</p><p class="sv ${alignColor}">${r.fieldAlignment || 0}%</p><p class="sn">${r.fieldAlignmentNote || ''}</p></div>
     </div>
+
     <p class="section-title">Salary range</p>
     <div class="bar-section">
-      <div class="bar-row-outer"><div class="bar-label-row"><span>Entry level</span><span>${d.salaryEntry}</span></div><div class="bar-track"><div class="bar-inner" id="bar-entry" style="width:0%;background:#B5D4F4;"></div></div></div>
-      <div class="bar-row-outer"><div class="bar-label-row"><span>Median</span><span>${d.salaryMedian}</span></div><div class="bar-track"><div class="bar-inner" id="bar-median" style="width:0%;background:#1D9E75;"></div></div></div>
-      <div class="bar-row-outer"><div class="bar-label-row"><span>Top 10%</span><span>${d.salaryTop}</span></div><div class="bar-track"><div class="bar-inner" id="bar-top" style="width:0%;background:#D85A30;"></div></div></div>
+      <div class="bar-row-outer"><div class="bar-label-row"><span>Entry level</span><span>${r.salaryEntry || ''}</span></div><div class="bar-track"><div class="bar-inner" id="bar-entry" style="width:0%;background:#B5D4F4;"></div></div></div>
+      <div class="bar-row-outer"><div class="bar-label-row"><span>Median</span><span>${r.salaryMedian || ''}</span></div><div class="bar-track"><div class="bar-inner" id="bar-median" style="width:0%;background:#1D9E75;"></div></div></div>
+      <div class="bar-row-outer"><div class="bar-label-row"><span>Top 10%</span><span>${r.salaryTop || ''}</span></div><div class="bar-track"><div class="bar-inner" id="bar-top" style="width:0%;background:#D85A30;"></div></div></div>
     </div>
+
     <p class="section-title">How people get into this field</p>
-    <div class="path-grid">${d.paths.map(p=>`<div class="path-card"><p class="path-pct" style="color:${p.color};">${p.pct}</p><p class="path-label">${p.label}</p><p class="path-note">${p.note}</p></div>`).join('')}</div>
+    <div class="path-grid">
+      ${(r.entryPaths || []).map(p => `
+        <div class="path-card">
+          <p class="path-pct" style="color:${p.color};">${p.pct}</p>
+          <p class="path-label">${p.label}</p>
+          <p class="path-note">${p.note}</p>
+        </div>`).join('')}
+    </div>
+
     <p class="section-title">AI and automation risk</p>
-    <div class="ai-block ${d.aiRisk}"><p class="ai-block-title" style="color:${aiColor(d.aiRisk)};">${d.aiTitle}</p><p class="ai-block-body">${d.aiBody}</p></div>
+    <div class="ai-block ${riskClass}">
+      <p class="ai-block-title" style="color:${aiColor(riskClass)};">${r.aiTitle || ''}</p>
+      <p class="ai-block-body">${r.aiBody || ''}</p>
+
+      <div class="landor-bars">
+        <div class="lbar">
+          <span class="lbar-lbl">Historical change speed</span>
+          <div class="lbar-track"><div class="lbar-fill" id="lb1" style="background:#185FA5;"></div></div>
+          <span class="lbar-val">${r.historicalSpeed || 0}%</span>
+        </div>
+        <div class="lbar">
+          <span class="lbar-lbl">AI speed right now</span>
+          <div class="lbar-track"><div class="lbar-fill" id="lb2" style="background:#D85A30;"></div></div>
+          <span class="lbar-val">${r.currentAISpeed || 0}%</span>
+        </div>
+        <div class="lbar">
+          <span class="lbar-lbl">Adaptation difficulty</span>
+          <div class="lbar-track"><div class="lbar-fill" id="lb3" style="background:#BA7517;"></div></div>
+          <span class="lbar-val">${r.adaptationDifficulty || 0}%</span>
+        </div>
+      </div>
+
+      <div class="tasks-row">
+        <div>
+          <p class="tasks-col-title risk">Tasks being automated</p>
+          <div>${(r.tasksAtRisk || []).map(t => `<span class="task-tag risk">${t}</span>`).join('')}</div>
+        </div>
+        <div>
+          <p class="tasks-col-title safe">Tasks that remain human</p>
+          <div>${(r.tasksSurvive || []).map(t => `<span class="task-tag safe">${t}</span>`).join('')}</div>
+        </div>
+      </div>
+
+      ${r.masterOrOperatorNote ? `
+        <div class="master-note">
+          <strong>${r.masterOrOperator || 'Path'}:</strong> ${r.masterOrOperatorNote}
+        </div>` : ''}
+
+      <div class="landors-link">
+        Want a full displacement analysis?
+        <a href="https://www.landorscurve.com" target="_blank">Run it on Landors Curve →</a>
+      </div>
+    </div>
+
+    ${(r.relatedCareers || []).length > 0 ? `
+      <p class="section-title">Related careers to explore</p>
+      <div class="related-row">
+        ${r.relatedCareers.map(c => `<button class="related-pill" onclick="quickSearch('${c}')">${c}</button>`).join('')}
+      </div>` : ''}
+
     <div class="divider"></div>
     <div class="cta-row">
-      <div class="cta-text"><p>Want a full pivot plan?</p><p>See what skills to add based on your major</p></div>
+      <div class="cta-text">
+        <p>Want a full pivot plan?</p>
+        <p>See what skills to add based on your major</p>
+      </div>
       <a href="student-pivot.html" class="cta-btn">Student Pivot Tool →</a>
     </div>
   `;
 
   panel.classList.add('show');
 
+  // Animate salary bars
   setTimeout(() => {
-    const max = d.salaryChart.top;
-    document.getElementById('bar-entry').style.width = Math.round((d.salaryChart.entry / max) * 100) + '%';
-    document.getElementById('bar-median').style.width = Math.round((d.salaryChart.median / max) * 100) + '%';
+    const top = r.salaryChartTop || 100;
+    const entryPct = Math.round(((r.salaryChartEntry || 0) / top) * 100);
+    const medPct = Math.round(((r.salaryChartMedian || 0) / top) * 100);
+    document.getElementById('bar-entry').style.width = entryPct + '%';
+    document.getElementById('bar-median').style.width = medPct + '%';
     document.getElementById('bar-top').style.width = '100%';
-  }, 80);
+  }, 100);
+
+  // Animate Landor bars
+  setTimeout(() => {
+    document.getElementById('lb1').style.width = (r.historicalSpeed || 0) + '%';
+    document.getElementById('lb2').style.width = (r.currentAISpeed || 0) + '%';
+    document.getElementById('lb3').style.width = (r.adaptationDifficulty || 0) + '%';
+  }, 300);
 
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-function showNoResults(raw) {
-  const panel = document.getElementById('results-panel');
-  const related = getRelatedCareers(raw);
-  panel.innerHTML = `
-    <div class="no-results">
-      <p class="no-results-title">No exact match found for "${raw}". Try one of these related careers:</p>
-      <div class="related-list">
-        ${related.map(c => `<button class="related-pill" onclick="quickSearch('${c.key}')">${c.name}</button>`).join('')}
-      </div>
-    </div>
-  `;
-  panel.classList.add('show');
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function doSearch() {
+async function doSearch() {
   const val = document.getElementById('career-input').value.trim();
   if (!val) return;
-  const result = resolveCareer(val);
-  if (result) {
-    renderResult(result.career, val);
-  } else {
-    showNoResults(val);
+
+  startLoading();
+
+  try {
+    const res = await fetch('/api/career', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ career: val })
+    });
+
+    stopLoading();
+
+    if (!res.ok) {
+      const err = await res.json();
+      showError(err.error || 'Something went wrong. Please try again.');
+      return;
+    }
+
+    const data = await res.json();
+    render(data);
+  } catch (err) {
+    stopLoading();
+    showError('Could not reach the server. Please check your connection and try again.');
   }
 }
 
-function quickSearch(keyOrTerm) {
-  document.getElementById('career-input').value = keyOrTerm;
-  const result = resolveCareer(keyOrTerm);
-  if (result) renderResult(result.career, keyOrTerm);
-  else showNoResults(keyOrTerm);
+function quickSearch(term) {
+  document.getElementById('career-input').value = term;
+  doSearch();
 }
 
 document.getElementById('career-input').addEventListener('keydown', e => {

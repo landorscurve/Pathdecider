@@ -4,20 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Career Income and Stats Lookup | PathDecider</title>
-  <meta name="description" content="Search any job title to see income, outlook, education path, and AI risk." />
+  <meta name="description" content="Search any job title by state to see income, outlook, education path, and AI risk." />
   <link rel="stylesheet" href="../css/main.css" />
   <style>
-    .search-row{display:flex;gap:8px;margin-bottom:1.25rem;}
-    .search-row input{flex:1;font-family:'DM Sans',sans-serif;font-size:15px;padding:0 16px;height:48px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:#fff;color:var(--text);outline:none;}
-    .search-row input:focus{border-color:var(--coral);}
-    .search-row button{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:0 22px;height:48px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;white-space:nowrap;transition:opacity .15s;}
+    .search-wrap{background:#fff;border:0.5px solid var(--border-med);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.75rem;}
+    .search-row{display:flex;gap:8px;margin-bottom:10px;}
+    .search-row input{flex:1;font-family:'DM Sans',sans-serif;font-size:15px;padding:0 16px;height:46px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:var(--gray-50);color:var(--text);outline:none;}
+    .search-row input:focus{border-color:var(--coral);background:#fff;}
+    .search-row button{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:0 22px;height:46px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;transition:opacity .15s;white-space:nowrap;}
     .search-row button:hover{opacity:.88;}
     .search-row button:disabled{background:#ccc;cursor:not-allowed;}
+    .state-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .state-row label{font-size:12px;color:var(--text-muted);white-space:nowrap;}
+    .state-row select{font-family:'DM Sans',sans-serif;font-size:13px;height:36px;padding:0 10px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:var(--gray-50);color:var(--text);outline:none;cursor:pointer;flex:1;max-width:280px;}
+    .state-row select:focus{border-color:var(--coral);}
+    .state-hint{font-size:11px;color:var(--text-hint);font-style:italic;}
+
     .suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2rem;}
     .sug-pill{font-size:12px;padding:6px 14px;border:0.5px solid var(--border-med);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
     .sug-pill:hover{background:var(--gray-100);}
 
-    /* LOADING */
     .loading-box{display:none;text-align:center;padding:3rem 1rem;}
     .loading-box.show{display:block;}
     .spinner{width:40px;height:40px;border:2px solid var(--gray-100);border-top-color:var(--coral);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem;}
@@ -25,12 +31,21 @@
     .loading-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:.35rem;}
     .loading-sub{font-size:12px;color:var(--text-muted);}
 
-    /* ERROR */
     .error-box{display:none;padding:1rem 1.25rem;background:#FAECE7;border-radius:var(--radius);border-left:3px solid var(--coral);font-size:13px;color:var(--coral-dark);margin-bottom:1rem;}
     .error-box.show{display:block;}
 
-    /* RESULTS */
     .results{display:none;}.results.show{display:block;}
+
+    /* STATE BADGE */
+    .state-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 12px;background:var(--blue-light);color:var(--blue);border-radius:100px;margin-bottom:1rem;}
+    .national-badge{background:var(--gray-100);color:var(--text-muted);}
+
+    /* SALARY COMPARISON */
+    .salary-compare{display:flex;align-items:center;gap:8px;margin-top:.5rem;font-size:12px;color:var(--text-muted);}
+    .salary-diff{font-weight:500;}
+    .salary-diff.above{color:#1D9E75;}
+    .salary-diff.below{color:#D85A30;}
+
     .career-title-row{display:flex;align-items:baseline;gap:12px;margin-bottom:.25rem;flex-wrap:wrap;}
     .career-name{font-family:'DM Serif Display',serif;font-size:26px;font-weight:400;}
     .career-type{font-size:11px;padding:4px 12px;border-radius:100px;font-weight:500;}
@@ -39,46 +54,56 @@
     .career-type.both{background:#EEEDFE;color:#3C3489;}
     .career-type.license{background:#FAEEDA;color:#854F0B;}
     .career-desc{font-size:13px;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6;}
+
     .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.5rem;}
     .sc{background:var(--gray-50);border-radius:var(--radius);padding:.875rem 1rem;}
     .sl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:.4rem;}
     .sv{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;line-height:1;margin-bottom:.2rem;}
     .sv.green{color:#1D9E75;}.sv.amber{color:#BA7517;}.sv.red{color:#D85A30;}.sv.blue{color:#185FA5;}
     .sn{font-size:11px;color:var(--text-hint);line-height:1.4;}
+
     .section-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.75rem;}
+
+    /* METRO TAGS */
+    .metro-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.5rem;}
+    .metro-tag{font-size:12px;padding:5px 12px;background:var(--blue-light);color:var(--blue);border-radius:100px;}
+    .metro-note{font-size:12px;color:var(--text-muted);margin-top:.5rem;line-height:1.5;}
+
     .path-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1.5rem;}
     .path-card{border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem;}
     .path-pct{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:.25rem;}
     .path-label{font-size:12px;font-weight:500;color:var(--text);margin-bottom:.2rem;}
     .path-note{font-size:11px;color:var(--text-muted);line-height:1.4;}
+
     .bar-section{margin-bottom:1.5rem;}
     .bar-row-outer{margin-bottom:8px;}
     .bar-label-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:3px;}
     .bar-track{height:8px;background:var(--gray-100);border-radius:4px;overflow:hidden;}
     .bar-inner{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.25,.46,.45,.94);}
 
-    /* AI RISK BLOCK — expanded with Landor's data */
     .ai-block{border-left:3px solid var(--border);padding:1rem 1.25rem;margin-bottom:1.5rem;border-radius:0 var(--radius-lg) var(--radius-lg) 0;background:var(--gray-50);}
-    .ai-block.low{border-left-color:#1D9E75;}
-    .ai-block.medium{border-left-color:#BA7517;}
-    .ai-block.high{border-left-color:#D85A30;}
+    .ai-block.low{border-left-color:#1D9E75;}.ai-block.medium{border-left-color:#BA7517;}.ai-block.high{border-left-color:#D85A30;}
     .ai-block-title{font-size:13px;font-weight:500;margin-bottom:.35rem;}
     .ai-block-body{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:1rem;}
+
     .landor-bars{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;}
     .lbar{display:grid;grid-template-columns:140px 1fr 40px;gap:8px;align-items:center;}
     .lbar-lbl{font-size:11px;color:var(--text-muted);}
     .lbar-track{height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden;}
     .lbar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.25,.46,.45,.94);width:0%;}
     .lbar-val{font-size:11px;color:var(--text-hint);text-align:right;}
+
     .tasks-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:.5rem;}
     .tasks-col-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;}
-    .tasks-col-title.risk{color:#D85A30;}
-    .tasks-col-title.safe{color:#1D9E75;}
+    .tasks-col-title.risk{color:#D85A30;}.tasks-col-title.safe{color:#1D9E75;}
     .task-tag{font-size:11px;padding:4px 10px;border-radius:100px;display:inline-block;margin:2px 2px 2px 0;}
-    .task-tag.risk{background:#FAECE7;color:#712B13;}
-    .task-tag.safe{background:#E1F5EE;color:#085041;}
+    .task-tag.risk{background:#FAECE7;color:#712B13;}.task-tag.safe{background:#E1F5EE;color:#085041;}
+
     .master-note{font-size:12px;color:var(--text-muted);padding:.625rem .875rem;background:var(--gray-100);border-radius:var(--radius);margin-top:.5rem;}
     .master-note strong{color:var(--text);}
+    .landors-link{font-size:12px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-top:.75rem;}
+    .landors-link a{color:var(--coral);text-decoration:none;}
+    .landors-link a:hover{text-decoration:underline;}
 
     .divider{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0;}
     .related-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem;}
@@ -88,13 +113,12 @@
     .cta-text p:first-child{font-size:14px;font-weight:500;margin-bottom:.2rem;}
     .cta-text p:last-child{font-size:12px;color:var(--text-muted);}
     .cta-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 16px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:transparent;color:var(--text);text-decoration:none;display:inline-block;white-space:nowrap;}
-    .landors-link{font-size:12px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-top:.75rem;}
-    .landors-link a{color:var(--coral);text-decoration:none;}
-    .landors-link a:hover{text-decoration:underline;}
 
     @media(max-width:560px){
       .tasks-row{grid-template-columns:1fr;}
       .lbar{grid-template-columns:100px 1fr 36px;}
+      .search-row{flex-direction:column;}
+      .search-row button{width:100%;}
     }
   </style>
 </head>
@@ -114,34 +138,93 @@
   <a href="../index.html" style="font-size:13px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-bottom:2rem;text-decoration:none;">← All tools</a>
   <p style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-hint);margin-bottom:.5rem;">Career Income and Stats Lookup</p>
   <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(24px,4.5vw,42px);font-weight:400;line-height:1.15;margin-bottom:.75rem;">What does that career actually look like,<br>and how much does it pay?</h1>
-  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:560px;">Search any job title to see income, outlook, education path, and AI risk — including niche and emerging careers.</p>
+  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:560px;">Search any job title by state to see income, job outlook, education path, and AI risk. A nurse in California earns very differently than a nurse in Texas.</p>
 
-  <div class="search-row">
-    <input type="text" id="career-input" placeholder="e.g. firefighter, regenerative farmer, live sound engineer..." />
-    <button id="search-btn" onclick="doSearch()">Look Up a Career</button>
+  <div class="search-wrap">
+    <div class="search-row">
+      <input type="text" id="career-input" placeholder="e.g. registered nurse, welder, Python developer..." />
+      <button id="search-btn" onclick="doSearch()">Look Up a Career</button>
+    </div>
+    <div class="state-row">
+      <label for="state-select">State:</label>
+      <select id="state-select">
+        <option value="National (US Average)">National (US Average)</option>
+        <option value="Alabama">Alabama</option>
+        <option value="Alaska">Alaska</option>
+        <option value="Arizona">Arizona</option>
+        <option value="Arkansas">Arkansas</option>
+        <option value="California">California</option>
+        <option value="Colorado">Colorado</option>
+        <option value="Connecticut">Connecticut</option>
+        <option value="Delaware">Delaware</option>
+        <option value="Florida">Florida</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Hawaii">Hawaii</option>
+        <option value="Idaho">Idaho</option>
+        <option value="Illinois">Illinois</option>
+        <option value="Indiana">Indiana</option>
+        <option value="Iowa">Iowa</option>
+        <option value="Kansas">Kansas</option>
+        <option value="Kentucky">Kentucky</option>
+        <option value="Louisiana">Louisiana</option>
+        <option value="Maine">Maine</option>
+        <option value="Maryland">Maryland</option>
+        <option value="Massachusetts">Massachusetts</option>
+        <option value="Michigan">Michigan</option>
+        <option value="Minnesota">Minnesota</option>
+        <option value="Mississippi">Mississippi</option>
+        <option value="Missouri">Missouri</option>
+        <option value="Montana">Montana</option>
+        <option value="Nebraska">Nebraska</option>
+        <option value="Nevada">Nevada</option>
+        <option value="New Hampshire">New Hampshire</option>
+        <option value="New Jersey">New Jersey</option>
+        <option value="New Mexico">New Mexico</option>
+        <option value="New York">New York</option>
+        <option value="North Carolina">North Carolina</option>
+        <option value="North Dakota">North Dakota</option>
+        <option value="Ohio">Ohio</option>
+        <option value="Oklahoma">Oklahoma</option>
+        <option value="Oregon">Oregon</option>
+        <option value="Pennsylvania">Pennsylvania</option>
+        <option value="Rhode Island">Rhode Island</option>
+        <option value="South Carolina">South Carolina</option>
+        <option value="South Dakota">South Dakota</option>
+        <option value="Tennessee">Tennessee</option>
+        <option value="Texas">Texas</option>
+        <option value="Utah">Utah</option>
+        <option value="Vermont">Vermont</option>
+        <option value="Virginia">Virginia</option>
+        <option value="Washington">Washington</option>
+        <option value="West Virginia">West Virginia</option>
+        <option value="Wisconsin">Wisconsin</option>
+        <option value="Wyoming">Wyoming</option>
+      </select>
+      <span class="state-hint">Salaries vary significantly by state</span>
+    </div>
   </div>
 
   <p style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.625rem;">Try these</p>
   <div class="suggestions">
-    <button class="sug-pill" onclick="quickSearch('welder')">Welder</button>
     <button class="sug-pill" onclick="quickSearch('registered nurse')">Registered nurse</button>
-    <button class="sug-pill" onclick="quickSearch('regenerative farmer')">Regenerative farmer</button>
-    <button class="sug-pill" onclick="quickSearch('live sound engineer')">Live sound engineer</button>
-    <button class="sug-pill" onclick="quickSearch('Python developer')">Python developer</button>
+    <button class="sug-pill" onclick="quickSearch('welder')">Welder</button>
+    <button class="sug-pill" onclick="quickSearch('software engineer')">Software engineer</button>
     <button class="sug-pill" onclick="quickSearch('electrician')">Electrician</button>
-    <button class="sug-pill" onclick="quickSearch('UX designer')">UX designer</button>
     <button class="sug-pill" onclick="quickSearch('firefighter')">Firefighter</button>
     <button class="sug-pill" onclick="quickSearch('physical therapist')">Physical therapist</button>
-    <button class="sug-pill" onclick="quickSearch('SQL analyst')">SQL analyst</button>
-    <button class="sug-pill" onclick="quickSearch('drone pilot')">Drone pilot</button>
+    <button class="sug-pill" onclick="quickSearch('teacher')">Teacher</button>
     <button class="sug-pill" onclick="quickSearch('lawyer')">Lawyer</button>
+    <button class="sug-pill" onclick="quickSearch('regenerative farmer')">Regenerative farmer</button>
+    <button class="sug-pill" onclick="quickSearch('live sound engineer')">Live sound engineer</button>
+    <button class="sug-pill" onclick="quickSearch('UX designer')">UX designer</button>
+    <button class="sug-pill" onclick="quickSearch('drone pilot')">Drone pilot</button>
   </div>
 
   <div class="error-box" id="error-box"></div>
   <div class="loading-box" id="loading-box">
     <div class="spinner"></div>
     <p class="loading-title" id="loading-title">Looking up career data...</p>
-    <p class="loading-sub" id="loading-sub">Pulling salary, outlook, and AI risk...</p>
+    <p class="loading-sub" id="loading-sub">Pulling salary, outlook, and AI risk data...</p>
   </div>
   <div class="results" id="results-panel"></div>
 </div>
@@ -149,16 +232,13 @@
 <footer style="margin-top:4rem;">
   <span class="footer-logo">PathDecider<span style="color:var(--coral);">.</span></span>
   <span class="footer-note">Powered by Claude AI. Data from BLS/O*NET through August 2025.</span>
-  <ul class="footer-links">
-    <li><a href="../index.html">Home</a></li>
-    <li><a href="degree-roi.html">ROI Calculator</a></li>
-  </ul>
+  <ul class="footer-links"><li><a href="../index.html">Home</a></li><li><a href="degree-roi.html">ROI Calculator</a></li></ul>
 </footer>
 
 <script>
 const LOADING_MSGS = [
   ['Pulling salary data...', 'BLS Occupational Employment Statistics'],
-  ['Checking job outlook...', 'Projected growth and employment trends'],
+  ['Checking state job market...', 'Regional employment and wage data'],
   ['Analyzing AI risk...', 'Cross-referencing Brookings and O*NET data'],
   ['Mapping entry paths...', 'Education and training requirements'],
   ['Calculating displacement...', 'Landors Curve index for this career'],
@@ -166,16 +246,26 @@ const LOADING_MSGS = [
 
 let loadingInterval;
 
-function startLoading() {
+function startLoading(state) {
+  const isState = state && state !== 'National (US Average)';
   document.getElementById('loading-box').classList.add('show');
   document.getElementById('error-box').classList.remove('show');
   document.getElementById('results-panel').classList.remove('show');
   document.getElementById('search-btn').disabled = true;
   let i = 0;
+  const msgs = isState
+    ? [
+        ['Pulling ' + state + ' salary data...', 'BLS state occupational employment statistics'],
+        ['Checking job market in ' + state + '...', 'Regional demand and top metro areas'],
+        ['Analyzing AI risk...', 'Cross-referencing Brookings and O*NET data'],
+        ['Comparing to national average...', 'Cost of living and wage context'],
+        ['Almost there...', 'Putting it all together'],
+      ]
+    : LOADING_MSGS;
   loadingInterval = setInterval(() => {
-    if (i < LOADING_MSGS.length) {
-      document.getElementById('loading-title').textContent = LOADING_MSGS[i][0];
-      document.getElementById('loading-sub').textContent = LOADING_MSGS[i][1];
+    if (i < msgs.length) {
+      document.getElementById('loading-title').textContent = msgs[i][0];
+      document.getElementById('loading-sub').textContent = msgs[i][1];
       i++;
     }
   }, 1400);
@@ -194,18 +284,36 @@ function showError(msg) {
 }
 
 function aiColor(risk) {
-  if (risk === 'low') return '#1D9E75';
-  if (risk === 'medium') return '#BA7517';
-  return '#D85A30';
+  return risk === 'low' ? '#1D9E75' : risk === 'medium' ? '#BA7517' : '#D85A30';
+}
+
+function salaryDiff(stateMedian, nationalMedian) {
+  if (!stateMedian || !nationalMedian) return '';
+  const parse = s => parseInt(s.replace(/[$,]/g, ''));
+  const sm = parse(stateMedian);
+  const nm = parse(nationalMedian);
+  if (isNaN(sm) || isNaN(nm) || sm === nm) return '';
+  const diff = sm - nm;
+  const pct = Math.round(Math.abs(diff) / nm * 100);
+  const dir = diff > 0 ? 'above' : 'below';
+  const sign = diff > 0 ? '+' : '-';
+  return `<span class="salary-diff ${dir}">${sign}${pct}% vs national average (${nationalMedian})</span>`;
 }
 
 function render(r) {
   const panel = document.getElementById('results-panel');
-  const growthColor = (r.jobGrowth || '').startsWith('-') ? 'red' : (parseInt(r.jobGrowth) > 5 ? 'green' : 'blue');
+  const isState = r.state && r.state !== 'National (US Average)';
+  const growthColor = (r.jobGrowth || '').startsWith('-') ? 'red' : parseInt(r.jobGrowth) > 5 ? 'green' : 'blue';
   const alignColor = r.fieldAlignment >= 70 ? 'green' : r.fieldAlignment >= 40 ? 'amber' : 'red';
   const riskClass = r.aiRisk || 'medium';
+  const diff = isState ? salaryDiff(r.salaryMedian, r.nationalMedian) : '';
 
   panel.innerHTML = `
+    ${isState ? `<div class="state-badge">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1C3.79 1 2 2.79 2 5c0 3 4 6 4 6s4-3 4-6c0-2.21-1.79-4-4-4z" fill="#185FA5"/><circle cx="6" cy="5" r="1.5" fill="white"/></svg>
+      ${r.state}
+    </div>` : `<div class="state-badge national-badge">National US Average</div>`}
+
     <div class="career-title-row">
       <span class="career-name">${r.career || 'Career'}</span>
       <span class="career-type ${r.pathType || 'both'}">${r.pathTypeLabel || ''}</span>
@@ -213,52 +321,53 @@ function render(r) {
     <p class="career-desc">${r.description || ''}</p>
 
     <div class="stat-grid">
-      <div class="sc"><p class="sl">US workers</p><p class="sv blue">${r.usWorkers || 'N/A'}</p><p class="sn">currently employed</p></div>
+      <div class="sc">
+        <p class="sl">${isState ? r.state + ' median' : 'US median salary'}</p>
+        <p class="sv green">${r.salaryMedian || 'N/A'}</p>
+        <p class="sn">annually (BLS 2023)</p>
+        ${diff ? `<div class="salary-compare">${diff}</div>` : ''}
+      </div>
       <div class="sc"><p class="sl">Job growth</p><p class="sv ${growthColor}">${r.jobGrowth || 'N/A'}</p><p class="sn">${r.growthNote || ''}</p></div>
-      <div class="sc"><p class="sl">Median salary</p><p class="sv green">${r.salaryMedian || 'N/A'}</p><p class="sn">annually (BLS 2023)</p></div>
+      <div class="sc"><p class="sl">${isState ? r.state + ' workers' : 'US workers'}</p><p class="sv blue">${isState && r.stateWorkers ? r.stateWorkers : r.usWorkers || 'N/A'}</p><p class="sn">currently employed</p></div>
       <div class="sc"><p class="sl">Field alignment</p><p class="sv ${alignColor}">${r.fieldAlignment || 0}%</p><p class="sn">${r.fieldAlignmentNote || ''}</p></div>
     </div>
 
-    <p class="section-title">Salary range</p>
+    <p class="section-title">Salary range${isState ? ' in ' + r.state : ''}</p>
     <div class="bar-section">
       <div class="bar-row-outer"><div class="bar-label-row"><span>Entry level</span><span>${r.salaryEntry || ''}</span></div><div class="bar-track"><div class="bar-inner" id="bar-entry" style="width:0%;background:#B5D4F4;"></div></div></div>
       <div class="bar-row-outer"><div class="bar-label-row"><span>Median</span><span>${r.salaryMedian || ''}</span></div><div class="bar-track"><div class="bar-inner" id="bar-median" style="width:0%;background:#1D9E75;"></div></div></div>
       <div class="bar-row-outer"><div class="bar-label-row"><span>Top 10%</span><span>${r.salaryTop || ''}</span></div><div class="bar-track"><div class="bar-inner" id="bar-top" style="width:0%;background:#D85A30;"></div></div></div>
     </div>
 
+    ${isState && r.costOfLivingNote ? `
+    <div style="font-size:12px;color:var(--text-muted);padding:.625rem .875rem;background:var(--gray-50);border-radius:var(--radius);margin-bottom:1.5rem;line-height:1.5;">
+      <strong style="color:var(--text);">Cost of living context:</strong> ${r.costOfLivingNote}
+    </div>` : ''}
+
+    ${(r.topMetros || []).length > 0 ? `
+    <p class="section-title">${isState ? 'Top areas in ' + r.state : 'Top US metros'} for this career</p>
+    <div class="metro-tags">${r.topMetros.map(m => `<span class="metro-tag">${m}</span>`).join('')}</div>
+    ${r.topMetrosNote ? `<p class="metro-note">${r.topMetrosNote}</p>` : ''}
+    <div style="margin-bottom:1.5rem;"></div>` : ''}
+
     <p class="section-title">How people get into this field</p>
-    <div class="path-grid">
-      ${(r.entryPaths || []).map(p => `
-        <div class="path-card">
-          <p class="path-pct" style="color:${p.color};">${p.pct}</p>
-          <p class="path-label">${p.label}</p>
-          <p class="path-note">${p.note}</p>
-        </div>`).join('')}
+    <div class="path-grid">${(r.entryPaths || []).map(p => `
+      <div class="path-card">
+        <p class="path-pct" style="color:${p.color};">${p.pct}</p>
+        <p class="path-label">${p.label}</p>
+        <p class="path-note">${p.note}</p>
+      </div>`).join('')}
     </div>
 
     <p class="section-title">AI and automation risk</p>
     <div class="ai-block ${riskClass}">
       <p class="ai-block-title" style="color:${aiColor(riskClass)};">${r.aiTitle || ''}</p>
       <p class="ai-block-body">${r.aiBody || ''}</p>
-
       <div class="landor-bars">
-        <div class="lbar">
-          <span class="lbar-lbl">Historical change speed</span>
-          <div class="lbar-track"><div class="lbar-fill" id="lb1" style="background:#185FA5;"></div></div>
-          <span class="lbar-val">${r.historicalSpeed || 0}%</span>
-        </div>
-        <div class="lbar">
-          <span class="lbar-lbl">AI speed right now</span>
-          <div class="lbar-track"><div class="lbar-fill" id="lb2" style="background:#D85A30;"></div></div>
-          <span class="lbar-val">${r.currentAISpeed || 0}%</span>
-        </div>
-        <div class="lbar">
-          <span class="lbar-lbl">Adaptation difficulty</span>
-          <div class="lbar-track"><div class="lbar-fill" id="lb3" style="background:#BA7517;"></div></div>
-          <span class="lbar-val">${r.adaptationDifficulty || 0}%</span>
-        </div>
+        <div class="lbar"><span class="lbar-lbl">Historical change speed</span><div class="lbar-track"><div class="lbar-fill" id="lb1" style="background:#185FA5;"></div></div><span class="lbar-val">${r.historicalSpeed || 0}%</span></div>
+        <div class="lbar"><span class="lbar-lbl">AI speed right now</span><div class="lbar-track"><div class="lbar-fill" id="lb2" style="background:#D85A30;"></div></div><span class="lbar-val">${r.currentAISpeed || 0}%</span></div>
+        <div class="lbar"><span class="lbar-lbl">Adaptation difficulty</span><div class="lbar-track"><div class="lbar-fill" id="lb3" style="background:#BA7517;"></div></div><span class="lbar-val">${r.adaptationDifficulty || 0}%</span></div>
       </div>
-
       <div class="tasks-row">
         <div>
           <p class="tasks-col-title risk">Tasks being automated</p>
@@ -269,47 +378,30 @@ function render(r) {
           <div>${(r.tasksSurvive || []).map(t => `<span class="task-tag safe">${t}</span>`).join('')}</div>
         </div>
       </div>
-
-      ${r.masterOrOperatorNote ? `
-        <div class="master-note">
-          <strong>${r.masterOrOperator || 'Path'}:</strong> ${r.masterOrOperatorNote}
-        </div>` : ''}
-
-      <div class="landors-link">
-        Want a full displacement analysis?
-        <a href="https://www.landorscurve.com" target="_blank">Run it on Landors Curve →</a>
-      </div>
+      ${r.masterOrOperatorNote ? `<div class="master-note"><strong>${r.masterOrOperator || 'Path'}:</strong> ${r.masterOrOperatorNote}</div>` : ''}
+      <div class="landors-link">Want a full displacement analysis? <a href="https://www.landorscurve.com" target="_blank">Run it on Landors Curve →</a></div>
     </div>
 
     ${(r.relatedCareers || []).length > 0 ? `
-      <p class="section-title">Related careers to explore</p>
-      <div class="related-row">
-        ${r.relatedCareers.map(c => `<button class="related-pill" onclick="quickSearch('${c}')">${c}</button>`).join('')}
-      </div>` : ''}
+    <p class="section-title">Related careers to explore</p>
+    <div class="related-row">${r.relatedCareers.map(c => `<button class="related-pill" onclick="quickSearch('${c}')">${c}</button>`).join('')}</div>` : ''}
 
     <div class="divider"></div>
     <div class="cta-row">
-      <div class="cta-text">
-        <p>Want a full pivot plan?</p>
-        <p>See what skills to add based on your major</p>
-      </div>
+      <div class="cta-text"><p>Want a full pivot plan?</p><p>See what skills to add based on your major</p></div>
       <a href="student-pivot.html" class="cta-btn">Student Pivot Tool →</a>
     </div>
   `;
 
   panel.classList.add('show');
 
-  // Animate salary bars
   setTimeout(() => {
     const top = r.salaryChartTop || 100;
-    const entryPct = Math.round(((r.salaryChartEntry || 0) / top) * 100);
-    const medPct = Math.round(((r.salaryChartMedian || 0) / top) * 100);
-    document.getElementById('bar-entry').style.width = entryPct + '%';
-    document.getElementById('bar-median').style.width = medPct + '%';
+    document.getElementById('bar-entry').style.width = Math.round(((r.salaryChartEntry || 0) / top) * 100) + '%';
+    document.getElementById('bar-median').style.width = Math.round(((r.salaryChartMedian || 0) / top) * 100) + '%';
     document.getElementById('bar-top').style.width = '100%';
   }, 100);
 
-  // Animate Landor bars
   setTimeout(() => {
     document.getElementById('lb1').style.width = (r.historicalSpeed || 0) + '%';
     document.getElementById('lb2').style.width = (r.currentAISpeed || 0) + '%';
@@ -320,16 +412,17 @@ function render(r) {
 }
 
 async function doSearch() {
-  const val = document.getElementById('career-input').value.trim();
-  if (!val) return;
+  const career = document.getElementById('career-input').value.trim();
+  const state = document.getElementById('state-select').value;
+  if (!career) return;
 
-  startLoading();
+  startLoading(state);
 
   try {
     const res = await fetch('/api/career', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ career: val })
+      body: JSON.stringify({ career, state })
     });
 
     stopLoading();

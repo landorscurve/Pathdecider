@@ -14,8 +14,33 @@ export default async function handler(req, res) {
   email = (email || '').trim();
   sections = sections || ['career', 'ai', 'education', 'skills', 'action'];
 
-  // Log email for list building (in production connect to Mailchimp/ConvertKit)
+  // Add contact to Brevo list
   console.log(`Report request: ${email} | ${career} in ${state}`);
+  if (email && process.env.BREVO_API_KEY) {
+    try {
+      await fetch('https://api.brevo.com/v3/contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': process.env.BREVO_API_KEY
+        },
+        body: JSON.stringify({
+          email: email,
+          updateEnabled: true,
+          attributes: {
+            FIRSTNAME: name || '',
+            CAREER: career,
+            STATE: state,
+            STATUS: status || 'Student',
+            SOURCE: 'PathDecider Report'
+          },
+          listIds: [2]
+        })
+      });
+    } catch (brevoErr) {
+      console.error('Brevo error:', brevoErr);
+    }
+  }
 
   const system = `You are the PathDecider Report Generator. Create a comprehensive personalized career report in JSON format using accurate labor market data from BLS, O*NET, NCES, and industry research through August 2025.
 

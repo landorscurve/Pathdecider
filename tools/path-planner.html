@@ -272,12 +272,6 @@
         </select>
       </div>
     </div>
-    <div class="form-grid-3">
-      <div class="form-group">
-        <label class="form-label" for="budget-input">Total budget (optional)</label>
-        <input type="text" id="budget-input" placeholder="e.g. $40,000 or under $100K..." />
-      </div>
-    </div>
     <p style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px;margin-top:4px;">Path preference</p>
     <div class="path-toggle">
       <button class="path-btn active" data-path="any" onclick="setPath(this)">Open to both</button>
@@ -537,7 +531,7 @@ async function buildPlan() {
   const field = document.getElementById('field-input').value.trim();
   const targetState = document.getElementById('target-state').value;
   const homeState = document.getElementById('home-state').value;
-  const budget = document.getElementById('budget-input').value.trim();
+  const budget = '';
 
   if (!field) { document.getElementById('field-input').focus(); return; }
   if (!targetState) { document.getElementById('target-state').focus(); return; }

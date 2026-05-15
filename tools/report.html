@@ -80,7 +80,7 @@
 </head>
 <body class="tool-page">
 <nav>
-  <a href="../index.html" class="nav-logo">PathDecider<span class="dot"></span></a>
+  <a href="../index.html" class="nav-logo"><img src="../PathDeciderLogo.svg" alt="PathDecider" /></a>
   <ul class="nav-links">
     <li><a href="career-reality-check.html">Reality Check</a></li>
     <li><a href="career-stats.html">Career Income and Stats</a></li>
@@ -219,7 +219,7 @@
 </div>
 
 <footer style="margin-top:4rem;">
-  <span class="footer-logo">PathDecider<span style="color:var(--coral);">.</span></span>
+  <span class="footer-logo"><img src="../PathDeciderLogo.svg" alt="PathDecider" /></span>
   <span class="footer-note">Powered by Claude AI. Data from BLS/O*NET through August 2025.</span>
   <ul class="footer-links">
     <li><a href="../index.html">Home</a></li>
@@ -230,6 +230,22 @@
 <script>
 let reportData = null;
 let pdfBlob = null;
+let logoBase64 = null;
+
+// Preload the PathDecider icon for use in PDF
+(function preloadLogo() {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    logoBase64 = canvas.toDataURL('image/png');
+  };
+  img.src = '../PathDeciderIcon.png';
+})();
 
 function toggleSection(el) {
   el.classList.toggle('selected');
@@ -400,9 +416,15 @@ function downloadPDF() {
     // Header bar on each page
     doc.setFillColor(...coral);
     doc.rect(0, 0, 210, 8, 'F');
+    // Mini logo icon
+    if (logoBase64) {
+      try {
+        doc.addImage(logoBase64, 'PNG', lm, 1, 6, 6);
+      } catch(e) { /* skip */ }
+    }
     doc.setFontSize(7);
     doc.setTextColor(255,255,255);
-    doc.text('PathDecider Career Report', lm, 5.5);
+    doc.text('PathDecider Career Report', lm + 8, 5.5);
     doc.text(`${career} in ${state}`, rm, 5.5, { align: 'right' });
     y = 18;
   }
@@ -483,11 +505,18 @@ function downloadPDF() {
   doc.setFillColor(...coral);
   doc.rect(0, 0, 210, 75, 'F');
 
+  // Logo icon on cover
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'PNG', lm, 12, 16, 16);
+    } catch(e) { /* skip if image fails */ }
+  }
+
   doc.setFillColor(255,255,255);
   doc.setFontSize(9);
   doc.setTextColor(255,255,255);
   doc.setFont('helvetica', 'bold');
-  doc.text('PATHDECIDER', lm, 20);
+  doc.text('PATHDECIDER', lm + 20, 20);
 
   doc.setFontSize(26);
   doc.setFont('helvetica', 'bold');
@@ -714,6 +743,12 @@ function downloadPDF() {
   addPage();
   doc.setFillColor(...coral);
   doc.rect(0, 100, 210, 80, 'F');
+  // Logo on final page
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'PNG', lm, 108, 14, 14);
+    } catch(e) { /* skip */ }
+  }
   doc.setFontSize(18);
   doc.setTextColor(255,255,255);
   doc.setFont('helvetica', 'bold');

@@ -59,18 +59,24 @@ nav {
 }
 
 .nav-logo {
-  font-family: 'DM Serif Display', serif;
-  font-size: 20px;
-  color: var(--text);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  text-decoration: none;
 }
 
 .nav-logo img {
-  height: 34px;
-  width: auto;
+  width: 30px;
+  height: 30px;
   display: block;
+  flex-shrink: 0;
+}
+
+.nav-logo span {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .nav-logo .dot {
@@ -458,17 +464,22 @@ footer {
 }
 
 .footer-logo {
-  font-family: 'DM Serif Display', serif;
-  font-size: 16px;
-  color: var(--text);
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .footer-logo img {
-  height: 28px;
-  width: auto;
+  width: 24px;
+  height: 24px;
   display: block;
+  flex-shrink: 0;
+}
+
+.footer-logo span {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  color: var(--text);
 }
 
 .footer-note {

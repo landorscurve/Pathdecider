@@ -420,20 +420,21 @@ function downloadPDF() {
     y = 20;
     // Header bar on each page
     doc.setFillColor(...coral);
-    doc.rect(0, 0, 210, 12, 'F');
+    doc.rect(0, 0, 210, 16, 'F');
     // Logo icon (white on coral bar)
     if (logoWhiteBase64) {
       try {
-        doc.addImage(logoWhiteBase64, 'PNG', lm, 2, 8, 8);
+        doc.addImage(logoWhiteBase64, 'PNG', lm, 2.5, 11, 11);
       } catch(e) { /* skip */ }
     }
-    doc.setFontSize(9);
+    doc.setFontSize(11);
     doc.setTextColor(255,255,255);
     doc.setFont('helvetica', 'bold');
-    doc.text('PathDecider', lm + 11, 8);
+    doc.text('PathDecider', lm + 14, 10.5);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${career} in ${state}`, rm, 8, { align: 'right' });
-    y = 20;
+    doc.text(`${career} in ${state}`, rm, 10.5, { align: 'right' });
+    y = 24;
   }
 
   function checkPage(needed = 20) {
@@ -749,10 +750,10 @@ function downloadPDF() {
   addPage();
   doc.setFillColor(...coral);
   doc.rect(0, 100, 210, 80, 'F');
-  // Logo on final page (white on coral bg)
+  // Icon + text on same line
   if (logoWhiteBase64) {
     try {
-      doc.addImage(logoWhiteBase64, 'PNG', lm, 106, 20, 20);
+      doc.addImage(logoWhiteBase64, 'PNG', lm, 113, 12, 12);
     } catch(e) { /* skip */ }
   }
   doc.setFontSize(18);

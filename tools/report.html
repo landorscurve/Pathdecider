@@ -232,19 +232,24 @@ let reportData = null;
 let pdfBlob = null;
 let logoBase64 = null;
 
-// Preload the PathDecider icon for use in PDF
-(function preloadLogo() {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = function() {
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    logoBase64 = canvas.toDataURL('image/png');
-  };
-  img.src = '../PathDeciderIcon.png';
+// Preload both icon versions for PDF use
+let logoWhiteBase64 = null;
+(function preloadLogos() {
+  function loadIcon(src, callback) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      callback(canvas.toDataURL('image/png'));
+    };
+    img.src = src;
+  }
+  loadIcon('../PathDeciderIcon.png', function(b64) { logoBase64 = b64; });
+  loadIcon('../PathDeciderIconWhite.png', function(b64) { logoWhiteBase64 = b64; });
 })();
 
 function toggleSection(el) {
@@ -416,10 +421,10 @@ function downloadPDF() {
     // Header bar on each page
     doc.setFillColor(...coral);
     doc.rect(0, 0, 210, 8, 'F');
-    // Mini logo icon
-    if (logoBase64) {
+    // Mini logo icon (white on coral bar)
+    if (logoWhiteBase64) {
       try {
-        doc.addImage(logoBase64, 'PNG', lm, 1, 6, 6);
+        doc.addImage(logoWhiteBase64, 'PNG', lm, 1, 6, 6);
       } catch(e) { /* skip */ }
     }
     doc.setFontSize(7);
@@ -505,10 +510,10 @@ function downloadPDF() {
   doc.setFillColor(...coral);
   doc.rect(0, 0, 210, 75, 'F');
 
-  // Logo icon on cover
-  if (logoBase64) {
+  // Logo icon on cover (white version on coral bg)
+  if (logoWhiteBase64) {
     try {
-      doc.addImage(logoBase64, 'PNG', lm, 12, 16, 16);
+      doc.addImage(logoWhiteBase64, 'PNG', lm, 12, 16, 16);
     } catch(e) { /* skip if image fails */ }
   }
 
@@ -743,10 +748,10 @@ function downloadPDF() {
   addPage();
   doc.setFillColor(...coral);
   doc.rect(0, 100, 210, 80, 'F');
-  // Logo on final page
-  if (logoBase64) {
+  // Logo on final page (white on coral bg)
+  if (logoWhiteBase64) {
     try {
-      doc.addImage(logoBase64, 'PNG', lm, 108, 14, 14);
+      doc.addImage(logoWhiteBase64, 'PNG', lm, 108, 14, 14);
     } catch(e) { /* skip */ }
   }
   doc.setFontSize(18);

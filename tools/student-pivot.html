@@ -4,17 +4,47 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Pivot Tool - PathDecider</title>
-  <meta name="description" content="Enter your major and year in school. Get specific skills, certifications, and a timeline to stay relevant in an AI economy." />
+  <meta name="description" content="Drop your resume or enter your major. Get a specific AI-powered plan to stay relevant — skills, certifications, and a timeline built around what you already have." />
   <link rel="stylesheet" href="../css/main.css" />
   <style>
+    /* ── labels / form ── */
     .fl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:5px;}
     .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
     .form-grid input,.form-grid select,.form-single input,.form-single select{font-family:'DM Sans',sans-serif;font-size:14px;width:100%;height:40px;padding:0 12px;border:0.5px solid var(--border-med);border-radius:var(--radius);background:#fff;color:var(--text);outline:none;}
     .form-grid input:focus,.form-grid select:focus{border-color:var(--coral);}
-    .submit-btn{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;height:46px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;margin-top:6px;}
+    .submit-btn{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;height:46px;background:#D85A30;color:#fff;border:none;border-radius:var(--radius);cursor:pointer;margin-top:6px;transition:opacity .15s;}
+    .submit-btn:hover{opacity:.9;}
+    .submit-btn:disabled{opacity:.55;cursor:not-allowed;}
+
+    /* ── divider ── */
+    .or-divider{display:flex;align-items:center;gap:12px;margin:1.5rem 0 1.25rem;}
+    .or-divider::before,.or-divider::after{content:'';flex:1;height:0.5px;background:var(--border-med);}
+    .or-divider span{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);white-space:nowrap;}
+
+    /* ── drop zone ── */
+    .drop-zone{border:1.5px dashed var(--border-med);border-radius:var(--radius-lg);padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;background:var(--gray-50);}
+    .drop-zone:hover,.drop-zone.dragover{border-color:var(--coral);background:#FDF4F1;}
+    .drop-zone.has-file{border-style:solid;border-color:#1D9E75;background:#F0FAF7;}
+    .dz-icon{width:36px;height:36px;margin:0 auto .75rem;opacity:.45;}
+    .dz-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:.35rem;}
+    .dz-sub{font-size:12px;color:var(--text-muted);line-height:1.5;}
+    .dz-file-name{font-size:13px;font-weight:500;color:#1D9E75;margin-top:.5rem;}
+    .dz-clear{font-size:11px;color:var(--text-hint);text-decoration:underline;cursor:pointer;margin-top:.35rem;display:inline-block;}
+    #resume-file-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+
+    /* ── loading ── */
+    .loading-bar-wrap{display:none;margin-top:1.5rem;}
+    .loading-bar-wrap.show{display:block;}
+    .loading-bar-track{height:3px;background:var(--gray-100);border-radius:100px;overflow:hidden;}
+    .loading-bar-fill{height:100%;width:0%;background:var(--coral);border-radius:100px;transition:width .4s ease;}
+    .loading-label{font-size:12px;color:var(--text-hint);margin-top:.5rem;}
+
+    /* ── results ── */
     .results{display:none;margin-top:2rem;}.results.show{display:block;}
     .result-name{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;margin-bottom:.35rem;}
-    .result-context{font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1.5rem;}
+    .result-context{font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:.75rem;}
+    .resume-insight-box{background:#F0FAF7;border:0.5px solid #A8DEC8;border-radius:var(--radius);padding:.875rem 1rem;margin-bottom:1.5rem;font-size:13px;color:#085041;line-height:1.6;}
+    .resume-insight-box strong{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem;opacity:.7;}
     .section-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-hint);margin-bottom:.875rem;}
     .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:1.75rem;}
     .skill-card{border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.125rem;}
@@ -23,7 +53,7 @@
     .skill-name{font-size:14px;font-weight:500;color:var(--text);line-height:1.3;}
     .skill-badge{font-size:10px;padding:3px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0;}
     .badge-now{background:var(--coral-light);color:var(--coral-dark);}
-    .badge-soon{background:var(--blue-light);color:var(--blue);}
+    .badge-soon{background:#EBF4FF;color:#1A5CA8;}
     .badge-later{background:var(--gray-100);color:var(--gray-600);}
     .skill-why{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:.625rem;}
     .skill-meta{display:flex;gap:12px;flex-wrap:wrap;}
@@ -36,7 +66,7 @@
     .cert-name{font-size:13px;font-weight:500;margin-bottom:.2rem;color:var(--text);}
     .cert-detail{font-size:12px;color:var(--text-muted);line-height:1.5;}
     .timeline{margin-bottom:1.75rem;}
-    .timeline-row{display:grid;grid-template-columns:100px 1fr;gap:12px;margin-bottom:12px;align-items:start;}
+    .timeline-row{display:grid;grid-template-columns:120px 1fr;gap:12px;margin-bottom:12px;align-items:start;}
     .timeline-period{font-size:11px;font-weight:500;color:var(--text-muted);padding-top:2px;}
     .timeline-items{display:flex;flex-direction:column;gap:6px;}
     .timeline-item{font-size:12px;padding:6px 10px;background:var(--gray-50);border-radius:var(--radius);color:var(--text);line-height:1.4;}
@@ -44,7 +74,7 @@
     .risk-block.low{border-left-color:#1D9E75;}.risk-block.medium{border-left-color:#BA7517;}.risk-block.high{border-left-color:#D85A30;}
     .risk-title{font-size:13px;font-weight:500;margin-bottom:.3rem;}
     .risk-body{font-size:12px;color:var(--text-muted);line-height:1.5;}
-    .divider{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0;}
+    .section-divider{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0;}
     .cta-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
     .cta-text p:first-child{font-size:14px;font-weight:500;margin-bottom:.2rem;}
     .cta-text p:last-child{font-size:12px;color:var(--text-muted);}
@@ -52,6 +82,14 @@
     .quick-majors{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem;}
     .qm-pill{font-size:12px;padding:5px 12px;border:0.5px solid var(--border-med);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
     .qm-pill:hover{background:var(--gray-100);}
+    .error-box{background:#FDF0ED;border:0.5px solid #F5C4B4;border-radius:var(--radius);padding:.875rem 1rem;font-size:13px;color:#712B13;margin-top:1rem;display:none;}
+    .error-box.show{display:block;}
+
+    /* ── manual toggle ── */
+    .manual-toggle{font-size:13px;color:var(--text-hint);text-align:center;margin-top:.75rem;cursor:pointer;user-select:none;}
+    .manual-toggle:hover{color:var(--text-muted);}
+    .manual-section{display:none;}
+    .manual-section.open{display:block;}
   </style>
 </head>
 <body class="tool-page">
@@ -65,45 +103,462 @@
     <li><a href="degree-roi.html" class="nav-cta">Degree ROI</a></li>
   </ul>
 </nav>
+
 <div class="tool-body" style="max-width:860px;padding-top:3rem;">
   <a href="../index.html" style="font-size:13px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-bottom:2rem;text-decoration:none;">← All tools</a>
   <p style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-hint);margin-bottom:.5rem;">Student Pivot Tool</p>
   <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(26px,5vw,44px);font-weight:400;line-height:1.15;margin-bottom:.75rem;">Your degree is the foundation.<br><span style="font-style:italic;color:#D85A30;">Let's build on top of it.</span></h1>
-  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:520px;">You don't need to switch majors. You need to know what to add. Enter where you are right now and get a specific action plan.</p>
+  <p style="font-size:15px;color:var(--text-muted);line-height:1.65;margin-bottom:2rem;max-width:520px;">Drop your resume and get a plan built around what you actually have — not just your major. No resume? Fill in the form below instead.</p>
 
-  <p class="section-lbl" style="margin-bottom:.625rem;">Quick select your major</p>
-  <div class="quick-majors">
-    <button class="qm-pill" onclick="quickFill('Psychology')">Psychology</button>
-    <button class="qm-pill" onclick="quickFill('Business Administration')">Business administration</button>
-    <button class="qm-pill" onclick="quickFill('English')">English</button>
-    <button class="qm-pill" onclick="quickFill('Biology')">Biology</button>
-    <button class="qm-pill" onclick="quickFill('Communications')">Communications</button>
-    <button class="qm-pill" onclick="quickFill('Computer Science')">Computer science</button>
-    <button class="qm-pill" onclick="quickFill('Marketing')">Marketing</button>
-    <button class="qm-pill" onclick="quickFill('Political Science')">Political science</button>
-    <button class="qm-pill" onclick="quickFill('History')">History</button>
-    <button class="qm-pill" onclick="quickFill('Finance')">Finance</button>
-    <button class="qm-pill" onclick="quickFill('Nursing')">Nursing</button>
-    <button class="qm-pill" onclick="quickFill('Graphic Design')">Graphic design</button>
+  <!-- ── RESUME DROP ── -->
+  <p class="section-lbl" style="margin-bottom:.625rem;">Drop your resume for a personalized plan</p>
+  <div class="drop-zone" id="drop-zone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+    <input type="file" id="resume-file-input" accept=".pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)" />
+    <svg class="dz-icon" id="dz-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 4L28 12H22V26H14V12H8L18 4Z" fill="currentColor" opacity=".3"/>
+      <rect x="6" y="28" width="24" height="2" rx="1" fill="currentColor" opacity=".3"/>
+    </svg>
+    <p class="dz-title" id="dz-title">Drag your resume here, or click to browse</p>
+    <p class="dz-sub" id="dz-sub">PDF, Word, or plain text · Your file stays in your browser</p>
+    <p class="dz-file-name" id="dz-file-name" style="display:none;"></p>
+    <span class="dz-clear" id="dz-clear" style="display:none;" onclick="clearFile(event)">Remove file</span>
   </div>
 
-  <div class="form-grid">
-    <div><p class="fl">Your major</p><input type="text" id="major" placeholder="e.g. Psychology, English..." /></div>
-    <div><p class="fl">Year in school</p><select id="year-select"><option value="">Select year...</option><option value="freshman">Freshman (1st year)</option><option value="sophomore">Sophomore (2nd year)</option><option value="junior">Junior (3rd year)</option><option value="senior">Senior (4th year)</option><option value="grad">Graduate student</option></select></div>
+  <!-- ── LOADING BAR ── -->
+  <div class="loading-bar-wrap" id="loading-wrap">
+    <div class="loading-bar-track"><div class="loading-bar-fill" id="loading-bar"></div></div>
+    <p class="loading-label" id="loading-label">Reading your resume...</p>
   </div>
-  <div class="form-grid">
-    <div><p class="fl">Career interest (optional)</p><input type="text" id="career-input" placeholder="e.g. healthcare, tech, media..." /></div>
-    <div><p class="fl">Time available per week</p><select id="time-select"><option value="">Select time...</option><option value="2">1–2 hours/week</option><option value="5">3–5 hours/week</option><option value="10">5–10 hours/week</option><option value="15">10+ hours/week</option></select></div>
+
+  <!-- ── ERROR ── -->
+  <div class="error-box" id="error-box"></div>
+
+  <!-- ── OR DIVIDER ── -->
+  <div class="or-divider"><span>or fill in manually</span></div>
+
+  <!-- ── MANUAL FORM (collapsed by default, opens if no resume) ── -->
+  <div id="manual-section">
+    <p class="section-lbl" style="margin-bottom:.625rem;">Quick select your major</p>
+    <div class="quick-majors">
+      <button class="qm-pill" onclick="quickFill('Psychology')">Psychology</button>
+      <button class="qm-pill" onclick="quickFill('Business Administration')">Business administration</button>
+      <button class="qm-pill" onclick="quickFill('English')">English</button>
+      <button class="qm-pill" onclick="quickFill('Biology')">Biology</button>
+      <button class="qm-pill" onclick="quickFill('Communications')">Communications</button>
+      <button class="qm-pill" onclick="quickFill('Computer Science')">Computer science</button>
+      <button class="qm-pill" onclick="quickFill('Marketing')">Marketing</button>
+      <button class="qm-pill" onclick="quickFill('Political Science')">Political science</button>
+      <button class="qm-pill" onclick="quickFill('History')">History</button>
+      <button class="qm-pill" onclick="quickFill('Finance')">Finance</button>
+      <button class="qm-pill" onclick="quickFill('Nursing')">Nursing</button>
+      <button class="qm-pill" onclick="quickFill('Graphic Design')">Graphic design</button>
+    </div>
+
+    <div class="form-grid">
+      <div><p class="fl">Your major</p><input type="text" id="major" placeholder="e.g. Psychology, English..." /></div>
+      <div><p class="fl">Year in school</p><select id="year-select"><option value="">Select year...</option><option value="freshman">Freshman (1st year)</option><option value="sophomore">Sophomore (2nd year)</option><option value="junior">Junior (3rd year)</option><option value="senior">Senior (4th year)</option><option value="grad">Graduate student</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div><p class="fl">Career interest (optional)</p><input type="text" id="career-input" placeholder="e.g. healthcare, tech, media..." /></div>
+      <div><p class="fl">Time available per week</p><select id="time-select"><option value="">Select time...</option><option value="2">1–2 hours/week</option><option value="5">3–5 hours/week</option><option value="10">5–10 hours/week</option><option value="15">10+ hours/week</option></select></div>
+    </div>
   </div>
-  <button class="submit-btn" onclick="buildPlan()">Build my pivot plan</button>
+
+  <button class="submit-btn" id="submit-btn" onclick="buildPlan()">Build my pivot plan</button>
+
+  <!-- ── RESULTS ── -->
   <div class="results" id="results-panel"></div>
 </div>
+
 <footer style="margin-top:4rem;">
   <span class="footer-logo"><img src="../PathDeciderIcon.png" alt="" /><span>PathDecider</span></span>
   <span class="footer-note">Powered by Claude AI · Data through August 2025</span>
   <ul class="footer-links"><li><a href="../index.html">Home</a></li><li><a href="degree-roi.html">ROI Calculator</a></li></ul>
 </footer>
+
+<!-- PDF.js for PDF text extraction -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- Mammoth.js for Word extraction -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
 <script src="../js/pivot-data.js"></script>
 <script src="../js/pivot-engine.js"></script>
+<script>
+  // ── pdfjsLib config ──
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  let extractedResumeText = '';
+  let currentFile = null;
+
+  // ── Drag & drop ──
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.add('dragover');
+  }
+  function handleDragLeave(e) {
+    document.getElementById('drop-zone').classList.remove('dragover');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  }
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) processFile(file);
+  }
+
+  async function processFile(file) {
+    const allowed = ['application/pdf', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'];
+    const ext = file.name.split('.').pop().toLowerCase();
+    const allowedExt = ['pdf', 'doc', 'docx', 'txt'];
+    if (!allowedExt.includes(ext)) {
+      showError('Please upload a PDF, Word document (.doc/.docx), or plain text file.');
+      return;
+    }
+
+    currentFile = file;
+    setDropZoneFile(file.name);
+    showLoading('Reading your resume...');
+    hideError();
+
+    try {
+      let text = '';
+      if (ext === 'pdf') {
+        text = await extractPDF(file);
+      } else if (ext === 'docx') {
+        text = await extractDocx(file);
+      } else if (ext === 'doc') {
+        // .doc fallback: try mammoth, it may handle some .doc files
+        try { text = await extractDocx(file); } catch { text = ''; }
+        if (!text || text.length < 20) {
+          showError('Legacy .doc files may not extract correctly. Try saving as .docx or .pdf.');
+          hideLoading();
+          return;
+        }
+      } else {
+        text = await extractTxt(file);
+      }
+
+      if (!text || text.trim().length < 50) {
+        showError('We could not read enough text from this file. Try a different format, or fill in the form manually below.');
+        hideLoading();
+        clearDropZone();
+        return;
+      }
+
+      extractedResumeText = text;
+      hideLoading();
+      showSuccess(file.name);
+    } catch (err) {
+      console.error('File read error:', err);
+      showError('Something went wrong reading that file. Try a different format, or use the manual form below.');
+      hideLoading();
+      clearDropZone();
+    }
+  }
+
+  async function extractPDF(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(item => item.str).join(' ') + '\n';
+    }
+    return fullText;
+  }
+
+  async function extractDocx(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  }
+
+  async function extractTxt(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  }
+
+  // ── Drop zone state ──
+  function setDropZoneFile(name) {
+    const dz = document.getElementById('drop-zone');
+    dz.classList.add('has-file');
+    document.getElementById('dz-icon').style.display = 'none';
+    document.getElementById('dz-title').textContent = 'Resume attached';
+    document.getElementById('dz-sub').style.display = 'none';
+    const fn = document.getElementById('dz-file-name');
+    fn.textContent = name;
+    fn.style.display = 'block';
+    document.getElementById('dz-clear').style.display = 'inline-block';
+  }
+
+  function showSuccess(name) {
+    // Already handled by setDropZoneFile; nothing extra needed
+  }
+
+  function clearFile(e) {
+    if (e) e.stopPropagation();
+    extractedResumeText = '';
+    currentFile = null;
+    clearDropZone();
+  }
+
+  function clearDropZone() {
+    const dz = document.getElementById('drop-zone');
+    dz.classList.remove('has-file', 'dragover');
+    document.getElementById('dz-icon').style.display = '';
+    document.getElementById('dz-title').textContent = 'Drag your resume here, or click to browse';
+    document.getElementById('dz-sub').style.display = '';
+    const fn = document.getElementById('dz-file-name');
+    fn.textContent = '';
+    fn.style.display = 'none';
+    document.getElementById('dz-clear').style.display = 'none';
+    document.getElementById('resume-file-input').value = '';
+  }
+
+  // ── Loading ──
+  let loadingInterval = null;
+  function showLoading(label) {
+    const wrap = document.getElementById('loading-wrap');
+    const bar = document.getElementById('loading-bar');
+    const lbl = document.getElementById('loading-label');
+    wrap.classList.add('show');
+    lbl.textContent = label;
+    bar.style.width = '0%';
+    let pct = 0;
+    clearInterval(loadingInterval);
+    loadingInterval = setInterval(() => {
+      pct = Math.min(pct + (Math.random() * 6 + 2), 88);
+      bar.style.width = pct + '%';
+    }, 400);
+    document.getElementById('submit-btn').disabled = true;
+  }
+  function hideLoading() {
+    clearInterval(loadingInterval);
+    const bar = document.getElementById('loading-bar');
+    bar.style.width = '100%';
+    setTimeout(() => {
+      document.getElementById('loading-wrap').classList.remove('show');
+      bar.style.width = '0%';
+    }, 400);
+    document.getElementById('submit-btn').disabled = false;
+  }
+
+  // ── Error ──
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = msg;
+    box.classList.add('show');
+  }
+  function hideError() {
+    document.getElementById('error-box').classList.remove('show');
+  }
+
+  // ── Build plan ──
+  async function buildPlan() {
+    hideError();
+    const major = document.getElementById('major').value.trim();
+    const year = document.getElementById('year-select').value;
+    const career = document.getElementById('career-input').value.trim();
+    const time = document.getElementById('time-select').value;
+    const hasResume = extractedResumeText.length > 50;
+
+    if (!hasResume && !major) {
+      showError('Please drop your resume or enter your major below.');
+      document.getElementById('major').focus();
+      return;
+    }
+
+    // If no resume but major provided, try local data first
+    if (!hasResume && major) {
+      const key = resolveKey(major);
+      if (key) {
+        buildLocalPlan(key, year, career, time);
+        return;
+      }
+    }
+
+    // AI path
+    showLoading(hasResume ? 'Analyzing your resume...' : 'Building your plan...');
+    const labels = [
+      'Analyzing your background...',
+      'Mapping skills to market demand...',
+      'Building your timeline...'
+    ];
+    let li = 0;
+    const labelInterval = setInterval(() => {
+      li = (li + 1) % labels.length;
+      document.getElementById('loading-label').textContent = labels[li];
+    }, 2200);
+
+    try {
+      const payload = { major, year, career, time };
+      if (hasResume) payload.resumeText = extractedResumeText;
+
+      const resp = await fetch('/api/pivot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      clearInterval(labelInterval);
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || 'API error');
+      }
+
+      const data = await resp.json();
+      hideLoading();
+      renderAIResults(data, hasResume);
+    } catch (err) {
+      clearInterval(labelInterval);
+      hideLoading();
+      showError('We had trouble building your plan. Please try again in a moment.');
+      console.error(err);
+    }
+  }
+
+  function renderAIResults(d, fromResume) {
+    const panel = document.getElementById('results-panel');
+    const riskClass = d.aiRisk || 'medium';
+    const riskColor = { low: '#085041', medium: '#854F0B', high: '#712B13' }[riskClass] || '#854F0B';
+
+    const tl = d.timeline || {};
+    const tlLabels = d.timelineLabels || {
+      now: 'This month',
+      semester: 'This semester',
+      year: 'Next 12 months',
+      senior: 'Senior year'
+    };
+
+    const resumeBadge = fromResume
+      ? `<div style="display:inline-flex;align-items:center;gap:6px;font-size:11px;background:#F0FAF7;color:#085041;border:0.5px solid #A8DEC8;border-radius:100px;padding:4px 10px;margin-bottom:1rem;">
+           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#1D9E75" stroke-width="1.2"/><path d="M3.5 6l1.5 1.5 3-3" stroke="#1D9E75" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+           Plan built from your resume
+         </div>`
+      : '';
+
+    const insightBlock = (d.resumeInsights && fromResume)
+      ? `<div class="resume-insight-box"><strong>From your resume</strong>${d.resumeInsights}</div>`
+      : '';
+
+    const topSkillsHTML = (d.topSkills || []).map(s => `
+      <div class="skill-card priority">
+        <div class="skill-header"><p class="skill-name">${s.name}</p><span class="skill-badge badge-now">${s.badgeLabel || 'Start now'}</span></div>
+        <p class="skill-why">${s.why}</p>
+        <div class="skill-meta"><p class="skill-meta-item">Time: <span>${s.time}</span></p><p class="skill-meta-item">Cost: <span>${s.cost}</span></p></div>
+      </div>`).join('');
+
+    const otherSkillsHTML = (d.otherSkills || []).map(s => `
+      <div class="skill-card">
+        <div class="skill-header"><p class="skill-name">${s.name}</p><span class="skill-badge badge-${s.badge || 'soon'}">${s.badgeLabel || 'Next semester'}</span></div>
+        <p class="skill-why">${s.why}</p>
+        <div class="skill-meta"><p class="skill-meta-item">Time: <span>${s.time}</span></p><p class="skill-meta-item">Cost: <span>${s.cost}</span></p></div>
+      </div>`).join('');
+
+    const certsHTML = (d.certs || []).map(c => `
+      <div class="cert-row">
+        <div class="cert-dot" style="background:${c.color || '#D85A30'};"></div>
+        <div><p class="cert-name">${c.name}</p><p class="cert-detail">${c.detail}</p></div>
+      </div>`).join('');
+
+    const makeTLItems = arr => (arr || []).map(t => `<div class="timeline-item">${t}</div>`).join('');
+
+    panel.innerHTML = `
+      <div style="margin-bottom:1.25rem;">
+        ${resumeBadge}
+        <p class="result-name">${d.name || d.majorDetected || 'Your Pivot Plan'}</p>
+        <p class="result-context">${d.context || ''}</p>
+      </div>
+      ${insightBlock}
+      <p class="section-lbl">Start here — highest impact skills</p>
+      <div class="skills-grid">${topSkillsHTML}</div>
+      <p class="section-lbl">Build on it — additional skills</p>
+      <div class="skills-grid">${otherSkillsHTML}</div>
+      <p class="section-lbl">Certifications worth getting</p>
+      <div class="certs-list">${certsHTML}</div>
+      <p class="section-lbl">Your timeline</p>
+      <div class="timeline">
+        <div class="timeline-row"><p class="timeline-period">${tlLabels.now}</p><div class="timeline-items">${makeTLItems(tl.now)}</div></div>
+        <div class="timeline-row"><p class="timeline-period">${tlLabels.semester}</p><div class="timeline-items">${makeTLItems(tl.semester)}</div></div>
+        <div class="timeline-row"><p class="timeline-period">${tlLabels.year}</p><div class="timeline-items">${makeTLItems(tl.year)}</div></div>
+        <div class="timeline-row"><p class="timeline-period">${tlLabels.senior}</p><div class="timeline-items">${makeTLItems(tl.senior)}</div></div>
+      </div>
+      <p class="section-lbl">AI &amp; automation outlook</p>
+      <div class="risk-block ${riskClass}">
+        <p class="risk-title" style="color:${riskColor};">${d.riskTitle || ''}</p>
+        <p class="risk-body">${d.riskBody || ''}</p>
+      </div>
+      <hr class="section-divider" />
+      <div class="cta-row">
+        <div class="cta-text"><p>Want to see the full ROI on your degree?</p><p>Calculate your expected earnings vs. cost</p></div>
+        <a href="degree-roi.html" class="cta-btn">Degree ROI Calculator →</a>
+      </div>`;
+
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── Quick fill ──
+  function quickFill(major) {
+    document.getElementById('major').value = major;
+  }
+
+  // ── Local plan (existing pivot-engine logic, re-exposed here) ──
+  function buildLocalPlan(key, yearVal, careerVal, timeVal) {
+    const d = PIVOT_DATA[key];
+    const horizon = YEAR_HORIZON[yearVal] || YEAR_HORIZON['sophomore'];
+    const timeNote = timeVal ? {
+      '2': 'With 1–2 hours/week, focus on one skill at a time — certifications first.',
+      '5': 'With 3–5 hours/week, you can run one cert and one skill track simultaneously.',
+      '10': 'With 5–10 hours/week, you can complete a full certification in 6–8 weeks while building project experience.',
+      '15': 'With 10+ hours/week, you can accelerate significantly — stack multiple credentials in a semester.'
+    }[timeVal] : null;
+    const topSkills = d.skills.filter(s => s.priority);
+    const otherSkills = d.skills.filter(s => !s.priority);
+    const riskColor = r => r === 'low' ? '#085041' : r === 'medium' ? '#854F0B' : '#712B13';
+    const panel = document.getElementById('results-panel');
+    panel.innerHTML = `
+      <div style="margin-bottom:1.5rem;">
+        <p class="result-name">${d.label}${yearVal ? ' — ' + document.getElementById('year-select').options[document.getElementById('year-select').selectedIndex].text : ''}</p>
+        <p class="result-context">${d.context}${careerVal ? ' You mentioned interest in <strong>' + careerVal + '</strong> — the recommendations below factor that in.' : ''}</p>
+        ${timeNote ? `<p style="font-size:12px;margin-top:.5rem;color:var(--text-muted);">${timeNote}</p>` : ''}
+      </div>
+      <p class="section-lbl">Start here — highest impact skills</p>
+      <div class="skills-grid">${topSkills.map(s => `<div class="skill-card priority"><div class="skill-header"><p class="skill-name">${s.name}</p><span class="skill-badge badge-now">${s.badgeLabel}</span></div><p class="skill-why">${s.why}</p><div class="skill-meta"><p class="skill-meta-item">Time: <span>${s.time}</span></p><p class="skill-meta-item">Cost: <span>${s.cost}</span></p></div></div>`).join('')}</div>
+      <p class="section-lbl">Build on it — additional skills</p>
+      <div class="skills-grid">${otherSkills.map(s => `<div class="skill-card"><div class="skill-header"><p class="skill-name">${s.name}</p><span class="skill-badge badge-${s.badge}">${s.badgeLabel}</span></div><p class="skill-why">${s.why}</p><div class="skill-meta"><p class="skill-meta-item">Time: <span>${s.time}</span></p><p class="skill-meta-item">Cost: <span>${s.cost}</span></p></div></div>`).join('')}</div>
+      <p class="section-lbl">Certifications worth getting</p>
+      <div class="certs-list">${d.certs.map(c => `<div class="cert-row"><div class="cert-dot" style="background:${c.color};margin-top:5px;"></div><div><p class="cert-name">${c.name}</p><p class="cert-detail">${c.detail}</p></div></div>`).join('')}</div>
+      <p class="section-lbl">Your timeline</p>
+      <div class="timeline">
+        <div class="timeline-row"><p class="timeline-period">${horizon.now}</p><div class="timeline-items">${d.timeline.now.map(t => `<div class="timeline-item">${t}</div>`).join('')}</div></div>
+        <div class="timeline-row"><p class="timeline-period">${horizon.semester}</p><div class="timeline-items">${d.timeline.semester.map(t => `<div class="timeline-item">${t}</div>`).join('')}</div></div>
+        <div class="timeline-row"><p class="timeline-period">${horizon.year}</p><div class="timeline-items">${d.timeline.year.map(t => `<div class="timeline-item">${t}</div>`).join('')}</div></div>
+        <div class="timeline-row"><p class="timeline-period">${horizon.senior}</p><div class="timeline-items">${d.timeline.senior.map(t => `<div class="timeline-item">${t}</div>`).join('')}</div></div>
+      </div>
+      <p class="section-lbl">AI &amp; automation outlook</p>
+      <div class="risk-block ${d.aiRisk}"><p class="risk-title" style="color:${riskColor(d.aiRisk)};">${d.riskTitle}</p><p class="risk-body">${d.riskBody}</p></div>
+      <hr class="section-divider" />
+      <div class="cta-row">
+        <div class="cta-text"><p>Want to see the full ROI on your degree?</p><p>Calculate your expected earnings vs. cost</p></div>
+        <a href="degree-roi.html" class="cta-btn">Degree ROI Calculator →</a>
+      </div>`;
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
 </body>
 </html>

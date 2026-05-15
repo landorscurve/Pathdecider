@@ -420,18 +420,20 @@ function downloadPDF() {
     y = 20;
     // Header bar on each page
     doc.setFillColor(...coral);
-    doc.rect(0, 0, 210, 8, 'F');
-    // Mini logo icon (white on coral bar)
+    doc.rect(0, 0, 210, 12, 'F');
+    // Logo icon (white on coral bar)
     if (logoWhiteBase64) {
       try {
-        doc.addImage(logoWhiteBase64, 'PNG', lm, 1, 6, 6);
+        doc.addImage(logoWhiteBase64, 'PNG', lm, 2, 8, 8);
       } catch(e) { /* skip */ }
     }
-    doc.setFontSize(7);
+    doc.setFontSize(9);
     doc.setTextColor(255,255,255);
-    doc.text('PathDecider Career Report', lm + 8, 5.5);
-    doc.text(`${career} in ${state}`, rm, 5.5, { align: 'right' });
-    y = 18;
+    doc.setFont('helvetica', 'bold');
+    doc.text('PathDecider', lm + 11, 8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${career} in ${state}`, rm, 8, { align: 'right' });
+    y = 20;
   }
 
   function checkPage(needed = 20) {
@@ -513,15 +515,14 @@ function downloadPDF() {
   // Logo icon on cover (white version on coral bg)
   if (logoWhiteBase64) {
     try {
-      doc.addImage(logoWhiteBase64, 'PNG', lm, 12, 16, 16);
+      doc.addImage(logoWhiteBase64, 'PNG', lm, 10, 22, 22);
     } catch(e) { /* skip if image fails */ }
   }
 
-  doc.setFillColor(255,255,255);
-  doc.setFontSize(9);
+  doc.setFontSize(16);
   doc.setTextColor(255,255,255);
   doc.setFont('helvetica', 'bold');
-  doc.text('PATHDECIDER', lm + 20, 20);
+  doc.text('PathDecider', lm + 27, 24);
 
   doc.setFontSize(26);
   doc.setFont('helvetica', 'bold');
@@ -751,7 +752,7 @@ function downloadPDF() {
   // Logo on final page (white on coral bg)
   if (logoWhiteBase64) {
     try {
-      doc.addImage(logoWhiteBase64, 'PNG', lm, 108, 14, 14);
+      doc.addImage(logoWhiteBase64, 'PNG', lm, 106, 20, 20);
     } catch(e) { /* skip */ }
   }
   doc.setFontSize(18);

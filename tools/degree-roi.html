@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="../PathDeciderIcon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Degree ROI Calculator - PathDecider</title>
-  <meta name="description" content="Enter your major, school cost, and career goals. Get a 40-year earnings projection, breakeven timeline, and AI displacement risk." />
+  <meta name="description" content="Enter your major, school cost, and career goals. Get a 40-year earnings projection, breakeven timeline, and automation risk." />
   <link rel="stylesheet" href="../css/main.css" />
   <style>
     .fl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:5px;}
@@ -49,14 +50,21 @@
 <body class="tool-page">
 <nav>
   <a href="../index.html" class="nav-logo"><img src="../PathDeciderIcon.png" alt="" /><span>PathDecider</span></a>
-  <ul class="nav-links">
-    <li><a href="career-reality-check.html">Reality Check</a></li>
-    <li><a href="career-stats.html">Career Income and Stats</a></li>
-    <li><a href="student-pivot.html">Pivot Tool</a></li>
-    <li><a href="employment-crisis.html">Graduate Outcomes</a></li>
-    <li><a href="degree-roi.html" class="nav-cta">Degree ROI</a></li>
+  <button class="nav-hamburger" id="navToggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+    <ul class="nav-links" id="navLinks">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="career-match.html">What's my career?</a></li>
+    <li><a href="degree-roi.html" style="color:var(--coral);font-weight:500;">Is my degree worth it?</a></li>
+    <li><a href="career-stats.html">How much does that job pay?</a></li>
+    <li><a href="career-reality-check.html">How's the job market?</a></li>
+    <li><a href="student-pivot.html">I have a resume</a></li>
+    <li><a href="../how-we-work.html">How we work</a></li>
+    <li><a href="../pricing.html">Pricing</a></li>
   </ul>
 </nav>
+<script>document.getElementById('navToggle').addEventListener('click',function(){this.classList.toggle('open');document.getElementById('navLinks').classList.toggle('open')});</script>
 <div class="tool-body" style="max-width:860px;padding-top:3rem;">
   <a href="../index.html" style="font-size:13px;color:var(--text-hint);display:flex;align-items:center;gap:6px;margin-bottom:2rem;text-decoration:none;">← All tools</a>
   <p style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-hint);margin-bottom:.5rem;">Degree ROI Calculator</p>
@@ -82,7 +90,7 @@
   <div class="form-grid">
     <div><p class="fl">Major</p><input type="text" id="major" placeholder="e.g. Psychology" /></div>
     <div><p class="fl">School type</p>
-      <select id="school-type" onchange="updateCostHint()">
+      <select id="school-type">
         <option value="public">Public university (in-state)</option>
         <option value="public-out">Public university (out-of-state)</option>
         <option value="private">Private university</option>
@@ -149,7 +157,7 @@
       <p class="insight-body" id="insight-body"></p>
     </div>
     <div class="insight-block ok" style="margin-bottom:1.5rem;">
-      <p class="insight-title" style="color:#854F0B;">AI displacement risk for this field</p>
+      <p class="insight-title" style="color:#854F0B;">automation risk for this field</p>
       <p class="insight-body" id="ai-risk-body"></p>
     </div>
 
@@ -169,12 +177,12 @@
 </div>
 <footer style="margin-top:4rem;">
   <span class="footer-logo"><img src="../PathDeciderIcon.png" alt="" /><span>PathDecider</span></span>
-  <span class="footer-note">Data based on BLS/O*NET · August 2025 · For informational purposes only</span>
+  <span class="footer-note">Analysis informed by O*NET, BLS, College Scorecard, IPEDS, Brookings, Fed Reserve NY, Pew Research, Goldman Sachs, and McKinsey workforce research.</span>
   <ul class="footer-links"><li><a href="../index.html">Home</a></li><li><a href="student-pivot.html">Pivot Tool</a></li></ul>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const MAJOR_DATA={'computer science':{medianSalary:130160,topSalary:180000,noDegree:42000,aiRisk:'medium',aiNote:'AI coding tools are raising the productivity bar for every developer. Junior roles face pressure. Specialization in ML, systems, or architecture significantly reduces displacement risk.'},nursing:{medianSalary:81220,topSalary:120000,noDegree:35000,aiRisk:'low',aiNote:'Nursing is among the most automation-resistant careers. Patient care, emotional support, and real-time clinical judgment are irreplaceable. AI will assist nurses, not replace them.'},engineering:{medianSalary:96000,topSalary:145000,noDegree:38000,aiRisk:'low',aiNote:'Engineering requires physical judgment, safety accountability, and systems thinking that AI cannot replicate. High AI displacement protection.'},'business administration':{medianSalary:65000,topSalary:110000,noDegree:36000,aiRisk:'medium',aiNote:'Generalist business roles face automation pressure in reporting and coordination. Specialized business graduates are significantly more protected than generalists.'},psychology:{medianSalary:55000,topSalary:85000,noDegree:34000,aiRisk:'low',aiNote:"Clinical and counseling psychology is highly AI-resistant - human relationships are irreplaceable. Non-clinical psychology roles face moderate disruption."},english:{medianSalary:52000,topSalary:80000,noDegree:34000,aiRisk:'high',aiNote:'AI tools are automating production-level writing rapidly. Technical writing, content strategy, and editorial judgment roles are more protected than general content creation.'},finance:{medianSalary:96000,topSalary:160000,noDegree:36000,aiRisk:'medium',aiNote:'Execution-layer financial analysis faces automation pressure. Deal judgment, client relationships, and regulatory navigation remain human-intensive.'},biology:{medianSalary:58000,topSalary:90000,noDegree:34000,aiRisk:'low',aiNote:"Lab research, clinical roles, and bioinformatics are AI-resistant. AI is becoming a powerful tool in biology that expands rather than displaces skilled biologists."},marketing:{medianSalary:65000,topSalary:120000,noDegree:35000,aiRisk:'medium',aiNote:'Campaign execution faces growing AI automation. Brand strategy, customer insight, and growth leadership remain human-judgment-intensive.'},'graphic design':{medianSalary:57990,topSalary:94000,noDegree:34000,aiRisk:'high',aiNote:'AI image generation is disrupting production design significantly. Designers who specialize in UX and brand strategy are repositioning successfully.'},'political science':{medianSalary:58000,topSalary:90000,noDegree:34000,aiRisk:'low',aiNote:'Policy analysis, stakeholder navigation, and legislative judgment are deeply human competencies.'},history:{medianSalary:52000,topSalary:78000,noDegree:34000,aiRisk:'low',aiNote:'Research synthesis and contextual analysis are AI-resistant skills. The challenge is credential translation, not automation risk.'}};
+const MAJOR_DATA={'computer science':{medianSalary:130160,topSalary:180000,noDegree:42000,aiRisk:'medium',aiNote:'AI coding tools are raising the productivity bar for every developer. Junior roles face pressure. Specialization in ML, systems, or architecture significantly reduces displacement risk.'},nursing:{medianSalary:81220,topSalary:120000,noDegree:35000,aiRisk:'low',aiNote:'Nursing is among the most automation-resistant careers. Patient care, emotional support, and real-time clinical judgment are irreplaceable. AI will assist nurses, not replace them.'},engineering:{medianSalary:96000,topSalary:145000,noDegree:38000,aiRisk:'low',aiNote:'Engineering requires physical judgment, safety accountability, and systems thinking that AI cannot replicate. High automation displacement protection.'},'business administration':{medianSalary:65000,topSalary:110000,noDegree:36000,aiRisk:'medium',aiNote:'Generalist business roles face automation pressure in reporting and coordination. Specialized business graduates are significantly more protected than generalists.'},psychology:{medianSalary:55000,topSalary:85000,noDegree:34000,aiRisk:'low',aiNote:"Clinical and counseling psychology is highly AI-resistant - human relationships are irreplaceable. Non-clinical psychology roles face moderate disruption."},english:{medianSalary:52000,topSalary:80000,noDegree:34000,aiRisk:'high',aiNote:'AI tools are automating production-level writing rapidly. Technical writing, content strategy, and editorial judgment roles are more protected than general content creation.'},finance:{medianSalary:96000,topSalary:160000,noDegree:36000,aiRisk:'medium',aiNote:'Execution-layer financial analysis faces automation pressure. Deal judgment, client relationships, and regulatory navigation remain human-intensive.'},biology:{medianSalary:58000,topSalary:90000,noDegree:34000,aiRisk:'low',aiNote:"Lab research, clinical roles, and bioinformatics are AI-resistant. AI is becoming a powerful tool in biology that expands rather than displaces skilled biologists."},marketing:{medianSalary:65000,topSalary:120000,noDegree:35000,aiRisk:'medium',aiNote:'Campaign execution faces growing AI automation. Brand strategy, customer insight, and growth leadership remain human-judgment-intensive.'},'graphic design':{medianSalary:57990,topSalary:94000,noDegree:34000,aiRisk:'high',aiNote:'AI image generation is disrupting production design significantly. Designers who specialize in UX and brand strategy are repositioning successfully.'},'political science':{medianSalary:58000,topSalary:90000,noDegree:34000,aiRisk:'low',aiNote:'Policy analysis, stakeholder navigation, and legislative judgment are deeply human competencies.'},history:{medianSalary:52000,topSalary:78000,noDegree:34000,aiRisk:'low',aiNote:'Research synthesis and contextual analysis are AI-resistant skills. The challenge is credential translation, not automation risk.'}};
 const SCHOOL_COSTS={public:40000,'public-out':110000,private:200000,cc:16000,trade:18000};
 let chartInstance=null;
 function fmt(n){return'$'+Math.round(n).toLocaleString();}
@@ -183,7 +191,13 @@ function syncCost(v){document.getElementById('cost-display').textContent=fmt(v);
 function syncSalary(v){document.getElementById('salary-display').textContent=fmt(v);}
 function syncYears(v){document.getElementById('years-display').textContent=v+' year'+(v>1?'s':'');}
 function updateCostHint(){const type=document.getElementById('school-type').value;const cost=SCHOOL_COSTS[type];document.getElementById('cost-slider').value=cost;syncCost(cost);}
-function quickSet(major,school,salary){document.getElementById('major').value=major;document.getElementById('school-type').value=school;updateCostHint();document.getElementById('salary-slider').value=salary;syncSalary(salary);}
+function quickSet(major,school,salary){document.getElementById('major').value=major;
+  // Only set school type if user hasn't changed it from default
+  const schoolEl = document.getElementById('school-type');
+  if(!schoolEl.dataset.userSelected) { schoolEl.value=school; updateCostHint(); }
+  document.getElementById('salary-slider').value=salary;syncSalary(salary);}
+  // Mark school type as user-selected when they change it
+  document.getElementById('school-type').addEventListener('change', function(){ this.dataset.userSelected='true'; updateCostHint(); });
 function getMajorKey(input){const norm=input.toLowerCase().trim();if(MAJOR_DATA[norm])return norm;for(const k of Object.keys(MAJOR_DATA)){if(norm.includes(k)||k.includes(norm))return k;}return null;}
 function calculate(){
   const majorInput=document.getElementById('major').value.trim();
@@ -217,7 +231,7 @@ function calculate(){
   document.getElementById('insight-title').style.color=insightColor;
   document.getElementById('insight-title').textContent=isGood?'What makes this work - and how to protect it.':isOk?'How to push this ROI from moderate to strong.':'What you need to do to make this investment pay off.';
   document.getElementById('insight-body').textContent=isGood?`A ${fmtK(projectedSalary)} starting salary and ${fmtK(netCost)} net cost is a solid combination. The two biggest risks are underemployment and early career drift. Adding one or two relevant certifications before graduation significantly increases the probability of landing in the upper salary range.`:isOk?`The gap between a strong and weak ROI here comes down to getting a job in your field and salary trajectory. Graduates who specialize with certifications and network into the field early earn $10–20K more at entry - which compounds dramatically over 40 years.`:`At this cost-to-salary ratio, the degree needs to open doors that are otherwise closed. If this is a terminal degree, look hard at alternatives: community college + transfer, trade school, or a high-ROI private program.`;
-  if(majorInfo){const riskColors={low:'#085041',medium:'#854F0B',high:'#712B13'};document.getElementById('ai-risk-body').style.color=riskColors[majorInfo.aiRisk]||'#888780';document.getElementById('ai-risk-body').textContent=`${majorInfo.aiRisk.charAt(0).toUpperCase()+majorInfo.aiRisk.slice(1)} risk: ${majorInfo.aiNote}`;}else{document.getElementById('ai-risk-body').textContent='AI displacement risk varies significantly within this field. Use the Career Stats Lookup tool to explore your specific career path.';}
+  if(majorInfo){const riskColors={low:'#085041',medium:'#854F0B',high:'#712B13'};document.getElementById('ai-risk-body').style.color=riskColors[majorInfo.aiRisk]||'#888780';document.getElementById('ai-risk-body').textContent=`${majorInfo.aiRisk.charAt(0).toUpperCase()+majorInfo.aiRisk.slice(1)} risk: ${majorInfo.aiNote}`;}else{document.getElementById('ai-risk-body').textContent='automation risk varies significantly within this field. Use the Career Stats Lookup tool to explore your specific career path.';}
   if(chartInstance){chartInstance.destroy();chartInstance=null;}
   chartInstance=new Chart(document.getElementById('roiChart'),{type:'line',data:{labels,datasets:[{label:'With degree',data:withDegree,borderColor:'#1D9E75',borderWidth:2,pointRadius:0,tension:0.3,fill:false},{label:'Without degree',data:withoutDegree,borderColor:'#378ADD',borderWidth:1.5,borderDash:[5,4],pointRadius:0,tension:0.3,fill:false},{label:'Total cost',data:costLine,borderColor:'#D85A30',borderWidth:1,borderDash:[3,3],pointRadius:0,tension:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtK(ctx.parsed.y)}}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:10},color:'#888780',maxTicksLimit:10}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:10},color:'#888780',callback:v=>'$'+Math.round(v/1000)+'K'}}}}});
   // update report link
